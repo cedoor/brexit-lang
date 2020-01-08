@@ -1,2 +1,2 @@
-# Brexit language analysis.
+# Brexit language analysis
 Language analysis of the Brexit debate.
