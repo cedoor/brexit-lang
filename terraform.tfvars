@@ -8,7 +8,7 @@ key_name = "amazon"
 elasticsearch_version = "7.1"
 elasticsearch_instance_type = "t2.small.elasticsearch"
 elasticsearch_instance_count = 3
-elasticsearch_volume_size = 30
+elasticsearch_volume_size = 10
 
 # EMR configuration.
 emr_release_label = "emr-5.28.1"
