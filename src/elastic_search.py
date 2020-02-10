@@ -1,9 +1,9 @@
 from json import loads
 from os import listdir, path
-from sys import argv
+from sys import argv, stdout
 from time import sleep
 
-from elasticsearch import Elasticsearch, helpers
+from elasticsearch import Elasticsearch
 
 
 # Define some console colors.
@@ -37,19 +37,19 @@ file_names = [file_name for file_name in listdir(data_path) if file_name.endswit
 # Define Elastic Search instance.
 es = Elasticsearch(host)
 
-if len(es.indices.get("*")) == 0:
+if es.indices.exists("the_guardian") is False:
     print(f"\n{Colors.BOLD}▶ Removing existing indices{Colors.ENDC}...")
 
-    # Delete all existing indices.
-    for index in es.indices.get("*"):
-        es.indices.delete(index)
+    for file_name in file_names:
+        index = path.splitext(file_name)[0]
+        if es.indices.exists(index):
+            es.indices.delete(index)
 
     print(f"\n{Colors.BOLD}▶ Creating indices{Colors.ENDC}...")
 
     # Create an indices for each JSON file.
     for file_name in file_names:
         with open(path.join(data_path, file_name), "r") as open_file:
-            body = [loads(line) for line in open_file]
             index = path.splitext(file_name)[0]
 
             es.indices.create(index=index, body="""{
@@ -68,8 +68,12 @@ if len(es.indices.get("*")) == 0:
                 }
             }""")
 
-            helpers.bulk(es, body, index=index)
+            for id, line in enumerate(open_file):
+                es.index(index=index, id=id, body=loads(line))
+                stdout.write(f"\r[{Colors.FAIL}x{Colors.ENDC}] {index} {int(id / 1024 * 100)}%")
+                stdout.flush()
 
+            stdout.write("\r")
             print(f"[{Colors.OKGREEN}✓{Colors.ENDC}] {index}")
 
     # Wait two seconds for next analysis.
