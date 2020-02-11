@@ -2,6 +2,8 @@ variable "name" {}
 variable "region" {}
 variable "caller_identity" {}
 variable "key_name" {}
+variable "vpc_id" {}
+variable "ingress_cidr_blocks" {}
 
 variable "elasticsearch_version" {}
 variable "elasticsearch_instance_type" {}

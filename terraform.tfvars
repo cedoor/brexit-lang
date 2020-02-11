@@ -3,6 +3,8 @@ name = "brexit-lang"
 region = "eu-west-2"
 caller_identity = "295036807698"
 key_name = "amazon"
+vpc_id = "vpc-66aed90e"
+ingress_cidr_blocks = "0.0.0.0/0"
 
 # Elastic search configuration.
 elasticsearch_version = "7.1"

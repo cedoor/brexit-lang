@@ -7,6 +7,9 @@ resource "aws_emr_cluster" "emr-cluster" {
   ec2_attributes {
     key_name = var.key_name
     instance_profile = var.ec2_instance_profile
+    emr_managed_master_security_group = var.emr_master_security_group
+    emr_managed_slave_security_group = var.emr_slave_security_group
+
   }
 
   master_instance_group {
@@ -22,6 +25,7 @@ resource "aws_emr_cluster" "emr-cluster" {
   }
 
   service_role = var.service_role
+  autoscaling_role = var.autoscaling_role
 
   tags = {
     Name = "${var.name} - cluster"
