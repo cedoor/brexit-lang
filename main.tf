@@ -28,14 +28,14 @@ module "emr" {
   autoscaling_role = module.iam.emr_autoscaling_role
 }
 
-//module "es" {
-//  source = "./modules/es"
-//
-//  name = var.name
-//  caller_identity = var.caller_identity
-//  region = var.region
-//  elasticsearch_version = var.elasticsearch_version
-//  instance_count = var.elasticsearch_instance_count
-//  instance_type = var.elasticsearch_instance_type
-//  volume_size = var.elasticsearch_volume_size
-//}
+module "es" {
+  source = "./modules/es"
+
+  name = var.name
+  caller_identity = var.caller_identity
+  region = var.region
+  elasticsearch_version = var.elasticsearch_version
+  instance_count = var.elasticsearch_instance_count
+  instance_type = var.elasticsearch_instance_type
+  volume_size = var.elasticsearch_volume_size
+}

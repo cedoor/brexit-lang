@@ -1,11 +1,11 @@
 # Elastic search output variables.
-//output "es_id" {
-//  value = module.es.id
-//}
-//
-//output "es_domain" {
-//  value = module.es.domain
-//}
+output "es_id" {
+  value = module.es.id
+}
+
+output "es_domain" {
+  value = module.es.domain
+}
 
 # EMR output variables.
 output "emr_id" {
