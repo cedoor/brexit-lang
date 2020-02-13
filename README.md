@@ -1,6 +1,6 @@
 # Brexit language analysis
 
-Language analysis of Brexit debate using Terragorm and AWS Elastic Search service to query newspaper data.
+Language analysis of Brexit debate using Terraform, AWS Elastic Search and AWS EMR with Spark.
 
 ___
 
