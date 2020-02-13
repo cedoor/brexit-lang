@@ -34,10 +34,10 @@ start = time()
 
 print(f"\n{Colors.BOLD}▶ Word occurrences:{Colors.ENDC}")
 
-for word in WORDS_TO_ANALYZE:
-    print(f"\n# {Colors.OKGREEN}{word}{Colors.ENDC} analysis:")
+for index in indices:
+    print(f"\n# {Colors.OKGREEN}{index}{Colors.ENDC}:")
 
-    for index in indices:
+    for word in WORDS_TO_ANALYZE:
         term_vector_response = es.termvectors(index=index, body="""{
             "doc": { "content": "%s" },
             "fields" : ["content"],
@@ -55,7 +55,7 @@ for word in WORDS_TO_ANALYZE:
         total_terms = aggregation_response["aggregations"]["number_of_tokens"]["value"]
         total_term_frequency = term_vector_response["term_vectors"]["content"]["terms"][word]["ttf"]
 
-        print(f" {Colors.OKBLUE}{index}{Colors.ENDC}: {round(total_term_frequency / total_terms * 1000, 3)}")
+        print(f" {Colors.OKBLUE}{word}{Colors.ENDC}: {round(total_term_frequency / total_terms * 1000, 3)}")
 
 end = time()
 

@@ -33,7 +33,9 @@ def analyze_newspaper(articles, name):
     number_of_tokens = all_tokens.count()
 
     for word_occurrence in word_occurrences.collect():
-        print(f"- {word_occurrence[0]}: {round(word_occurrence[1] / number_of_tokens * 1000, 3)}")
+        occurrence = round(word_occurrence[1] / number_of_tokens * 1000, 3)
+
+        print(f" {Colors.OKBLUE}{word_occurrence[0]}{Colors.ENDC}: {occurrence}")
 
 
 def list_to_data_frame(_list):
@@ -82,8 +84,12 @@ newspaper_articles = [(name, list_to_data_frame(get_newspaper_articles(name))) f
 
 start = time()
 
+print(f"\n{Colors.BOLD}▶ Word occurrences:{Colors.ENDC}")
+
 # Analyze the newspapers (Spark Analysis).
 for name, articles in newspaper_articles:
+    print(f"\n# {Colors.OKGREEN}{name}{Colors.ENDC}:")
+
     analyze_newspaper(articles, name)
 
 end = time()
