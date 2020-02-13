@@ -1,4 +1,4 @@
-from os import listdir, path, getenv
+from os import path, getenv
 from time import time
 
 from dotenv import load_dotenv
@@ -21,20 +21,20 @@ load_dotenv()
 
 # Get environment variables.
 ELASTIC_SEARCH_HOST = getenv("ELASTIC_SEARCH_HOST")
-DATA_PATH = getenv("DATA_PATH")
+DATA_FILES = getenv("DATA_FILES").split(" ")
 WORDS_TO_ANALYZE = getenv("WORDS_TO_ANALYZE").split(" ")
 
 # Define Elastic Search instance.
 es = Elasticsearch(ELASTIC_SEARCH_HOST)
 
-# Get all the JSON files from data folder to retrieve Elastic Search indices.
-indices = [path.splitext(file_name)[0] for file_name in listdir(DATA_PATH) if file_name.endswith(".json")]
+# Get all newspaper's names for Elastic Search indices.
+newspaper_indices = [path.splitext(file_name)[0] for file_name in DATA_FILES]
 
 start = time()
 
 print(f"\n{Colors.BOLD}▶ Word occurrences:{Colors.ENDC}")
 
-for index in indices:
+for index in newspaper_indices:
     print(f"\n# {Colors.OKGREEN}{index}{Colors.ENDC}:")
 
     for word in WORDS_TO_ANALYZE:

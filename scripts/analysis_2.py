@@ -1,4 +1,4 @@
-from os import listdir, path, getenv
+from os import path, getenv
 from time import time
 
 from dotenv import load_dotenv
@@ -28,7 +28,7 @@ def analyze_newspaper(articles, name):
 
     word_occurrences = token_occurrences.filter(lambda x: x[0] in WORDS_TO_ANALYZE).sortBy(lambda x: x[0])
 
-    print(f"\n# {name} analysis:")
+    print(f"\n# {Colors.OKGREEN}{name}{Colors.ENDC}:")
 
     number_of_tokens = all_tokens.count()
 
@@ -41,11 +41,7 @@ def analyze_newspaper(articles, name):
 def list_to_data_frame(_list):
     row = Row(*_list[0])
 
-    return [row(*x.values()) for x in _list]
-
-
-def get_file_names(dir_path, extension=".json"):
-    return [path.splitext(file_name)[0] for file_name in listdir(dir_path) if file_name.endswith(extension)]
+    return spark.createDataFrame([row(*x.values()) for x in _list])
 
 
 def get_newspaper_articles(name):
@@ -63,7 +59,7 @@ load_dotenv()
 
 # Get environment variables.
 ELASTIC_SEARCH_HOST = getenv("ELASTIC_SEARCH_HOST")
-DATA_PATH = getenv("DATA_PATH")
+DATA_FILES = getenv("DATA_FILES").split(" ")
 WORDS_TO_ANALYZE = getenv("WORDS_TO_ANALYZE").split(" ")
 
 # Define Elastic Search instance.
@@ -77,7 +73,7 @@ sc = spark.sparkContext
 sc.setLogLevel("ERROR")
 
 # Get all newspaper's names.
-newspaper_names = get_file_names(DATA_PATH)
+newspaper_names = [path.splitext(file_name)[0] for file_name in DATA_FILES]
 
 # Get all the articles of each newspaper.
 newspaper_articles = [(name, list_to_data_frame(get_newspaper_articles(name))) for name in newspaper_names]
@@ -88,8 +84,6 @@ print(f"\n{Colors.BOLD}▶ Word occurrences:{Colors.ENDC}")
 
 # Analyze the newspapers (Spark Analysis).
 for name, articles in newspaper_articles:
-    print(f"\n# {Colors.OKGREEN}{name}{Colors.ENDC}:")
-
     analyze_newspaper(articles, name)
 
 end = time()

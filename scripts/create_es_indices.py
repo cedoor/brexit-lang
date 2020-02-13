@@ -23,16 +23,14 @@ load_dotenv()
 # Get Elastic Search host and data path.
 ELASTIC_SEARCH_HOST = getenv("ELASTIC_SEARCH_HOST")
 DATA_PATH = getenv("DATA_PATH")
+DATA_FILES = getenv("DATA_FILES").split(" ")
 
 # Define Elastic Search instance.
 es = Elasticsearch(ELASTIC_SEARCH_HOST)
 
-# Get all the JSON files from data folder.
-file_names = [file_name for file_name in listdir(DATA_PATH) if file_name.endswith(".json")]
-
 print(f"\n{Colors.BOLD}▶ Creating new indices{Colors.ENDC}")
 
-for file_name in file_names:
+for file_name in DATA_FILES:
     index = path.splitext(file_name)[0]
 
     if es.indices.exists(index):
