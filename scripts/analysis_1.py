@@ -30,9 +30,9 @@ es = Elasticsearch(ELASTIC_SEARCH_HOST)
 # Get all newspaper's names for Elastic Search indices.
 newspaper_indices = [path.splitext(file_name)[0] for file_name in DATA_FILES]
 
-start = time()
-
 print(f"\n{Colors.BOLD}▶ Word occurrences:{Colors.ENDC}")
+
+start = time()
 
 for index in newspaper_indices:
     print(f"\n# {Colors.OKGREEN}{index}{Colors.ENDC}:")

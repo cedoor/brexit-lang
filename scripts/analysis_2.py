@@ -78,9 +78,9 @@ newspaper_names = [path.splitext(file_name)[0] for file_name in DATA_FILES]
 # Get all the articles of each newspaper.
 newspaper_articles = [(name, list_to_data_frame(get_newspaper_articles(name))) for name in newspaper_names]
 
-start = time()
-
 print(f"\n{Colors.BOLD}▶ Word occurrences:{Colors.ENDC}")
+
+start = time()
 
 # Analyze the newspapers (Spark Analysis).
 for name, articles in newspaper_articles:
