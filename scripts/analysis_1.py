@@ -1,3 +1,4 @@
+import json
 from os import path, getenv
 from time import time
 
@@ -14,6 +15,13 @@ class Colors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
+
+def save_data(file_name, data):
+    with open("./" + file_name + ".json", "w") as fp:
+        json.dump(data, fp, indent=4, ensure_ascii=False)
+
+    print(f"\n{Colors.OKGREEN}✔ Results saved in {file_name}.json file!{Colors.ENDC}")
 
 
 # Load the environment variables from .env file.
@@ -37,25 +45,42 @@ start = time()
 for index in newspaper_indices:
     print(f"\n# {Colors.OKGREEN}{index}{Colors.ENDC}:")
 
+    results = {
+        "number_of_tokens": 0,
+        "word_occurrences": {}
+    }
+
     for word in WORDS_TO_ANALYZE:
-        term_vector_response = es.termvectors(index=index, body="""{
-            "doc": { "content": "%s" },
-            "fields" : ["content"],
-            "term_statistics" : true,
-            "field_statistics" : true
-        }""" % word)
+        if len(word.split(":")) == 1:
+            term_vector_response = es.termvectors(index=index, body="""{
+                "doc": { "content": "%s" },
+                "fields" : ["content"],
+                "term_statistics" : true,
+                "field_statistics" : true
+            }""" % word)
 
-        aggregation_response = es.search(index=index, body="""{   
-            "size": 0,
-            "aggs" : {
-                "number_of_tokens" : { "sum" : { "field" : "content.length" } }
-            }
-        }""")
+            aggregation_response = es.search(index=index, body="""{   
+                "size": 0,
+                "aggs" : {
+                    "number_of_tokens" : { "sum" : { "field" : "content.length" } }
+                }
+            }""")
 
-        total_terms = aggregation_response["aggregations"]["number_of_tokens"]["value"]
-        total_term_frequency = term_vector_response["term_vectors"]["content"]["terms"][word]["ttf"]
+            number_of_tokens = aggregation_response["aggregations"]["number_of_tokens"]["value"]
 
-        print(f" {Colors.OKBLUE}{word}{Colors.ENDC}: {round(total_term_frequency / total_terms * 1000, 3)}")
+            results["number_of_tokens"] = number_of_tokens
+
+            word_statistics = term_vector_response["term_vectors"]["content"]["terms"][word]
+
+            if "ttf" in word_statistics:
+                total_term_frequency = term_vector_response["term_vectors"]["content"]["terms"][word]["ttf"]
+                normalized_occurrences = round(total_term_frequency / number_of_tokens * 1000, 3)
+
+                results["word_occurrences"][word] = normalized_occurrences
+
+                print(f" {Colors.OKBLUE}{word}{Colors.ENDC}: {normalized_occurrences}")
+
+    save_data(index, results)
 
 end = time()
 

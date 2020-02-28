@@ -4,9 +4,7 @@ from time import time
 
 from dotenv import load_dotenv
 from elasticsearch import Elasticsearch
-from nltk import download, word_tokenize, sent_tokenize, pos_tag
-from nltk.corpus import wordnet
-from nltk.stem import WordNetLemmatizer
+from nltk import download, word_tokenize, sent_tokenize
 from pyspark.sql import SparkSession, Row
 
 download('punkt')
@@ -65,19 +63,6 @@ def get_contextual_word(sentence, contextual_words):
     return ""
 
 
-def get_wordnet_pos(treebank_tag):
-    if treebank_tag.startswith('J'):
-        return wordnet.ADJ
-    elif treebank_tag.startswith('V'):
-        return wordnet.VERB
-    elif treebank_tag.startswith('N'):
-        return wordnet.NOUN
-    elif treebank_tag.startswith('R'):
-        return wordnet.ADV
-    else:
-        return wordnet.NOUN
-
-
 def save_data(file_name, data):
     with open("./" + file_name + ".json", "w") as fp:
         json.dump(data, fp, indent=4, ensure_ascii=False)
@@ -86,15 +71,10 @@ def save_data(file_name, data):
 
 
 def analyze_newspaper(name, articles, words):
-    lemmatizer = WordNetLemmatizer()
-
-    # ...
-    all_tokens = articles.rdd.flatMap(lambda article: pos_tag(word_tokenize(article.content.lower())))
-    all_tokens = all_tokens.map(lambda token: lemmatizer.lemmatize(token[0], get_wordnet_pos(token[1])))
+    all_tokens = articles.rdd.flatMap(lambda article: word_tokenize(article.content.lower()))
     token_occurrences = all_tokens.map(lambda token: (token, 1)).reduceByKey(lambda x, y: x + y)
     token_occurrences = token_occurrences.filter(lambda x: x[0] in words["common"]).sortBy(lambda x: x[0])
 
-    # ...
     all_sentences = articles.rdd.flatMap(lambda article: sent_tokenize(article.content.lower()))
     all_sentences = all_sentences.map(lambda sentence: word_tokenize(sentence))
     sentence_occurrences = all_sentences.filter(lambda sentence: is_contextualized(sentence, words["contextual"]))
@@ -104,25 +84,18 @@ def analyze_newspaper(name, articles, words):
     print(f"\n#### {Colors.OKGREEN}{name}{Colors.ENDC}:")
 
     number_of_tokens = all_tokens.count()
-    number_of_articles = articles.rdd.count()
 
     results = {
         "number_of_tokens": number_of_tokens,
-        "number_of_articles": number_of_articles,
         "word_occurrences": {}
     }
 
     for word in token_occurrences.collect() + sentence_occurrences.collect():
         normalized_occurrences = round(word[1] / number_of_tokens * 1000, 3)
-        average_per_article = round(word[1] / number_of_articles, 3)
 
-        results["word_occurrences"][word[0]] = {
-            "occurrences": word[1],
-            "normalized_occurrences": normalized_occurrences,
-            "average_per_article": average_per_article
-        }
+        results["word_occurrences"][word[0]] = normalized_occurrences
 
-        print(f"* {Colors.OKBLUE}{word[0]}{Colors.ENDC}: {word[1]}, {normalized_occurrences}, {average_per_article}")
+        print(f"* {Colors.OKBLUE}{word[0]}{Colors.ENDC}: {normalized_occurrences}")
 
     save_data(name, results)
 
