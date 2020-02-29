@@ -67,9 +67,9 @@ Examples:
 ### :boy: Developers
 
 #### Cedoor
-* E-mail : omardesogus9@gmail.com
+* E-mail : me@cedoor.dev
 * Github : [@cedoor](https://github.com/cedoor)
-* Website : https://cedoor.org
+* Website : https://cedoor.dev
 
 #### Epilurzu
 * E-mail : e.ipodda@gmail.com
