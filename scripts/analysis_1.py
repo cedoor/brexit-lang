@@ -30,7 +30,7 @@ load_dotenv()
 # Get environment variables.
 ELASTIC_SEARCH_HOST = getenv("ELASTIC_SEARCH_HOST")
 DATA_FILES = getenv("DATA_FILES").split(" ")
-WORDS_TO_ANALYZE = getenv("WORDS_TO_ANALYZE").split(" ")
+KEY_WORDS = getenv("KEY_WORDS").split(" ")
 
 # Define Elastic Search instance.
 es = Elasticsearch(ELASTIC_SEARCH_HOST)

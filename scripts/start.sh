@@ -1,6 +1,10 @@
 echo -e "\nDownload scripts"
 
-ssh -i "$1" "$2" << EOF
+ENV_FILE_PATH="$1"
+
+source "$ENV_FILE_PATH"
+
+ssh -i "$IDENTITY_FILE_PATH" "$EMR_HOST" << EOF
 rm -fr *
 wget -q https://github.com/cedoor/brexit-lang/archive/master.zip
 unzip -q master.zip
@@ -11,13 +15,13 @@ EOF
 
 echo -e "\nMove data and .env"
 
-scp -r -i "$1" "$3" "$2:/home/hadoop"
-scp -i "$1" "$4" "$2:/home/hadoop/brexit-lang-master"
+scp -r -i "$IDENTITY_FILE_PATH" "$DATA_PATH" "$EMR_HOST:/home/hadoop"
+scp -i "$IDENTITY_FILE_PATH" "$ENV_FILE_PATH" "$EMR_HOST:/home/hadoop/brexit-lang-master"
 
 echo -e "\nRun analysis"
 
-ssh -i "$1" "$2" << EOF
-hdfs dfs -put ~/data/* /data
+ssh -i "$IDENTITY_FILE_PATH" "$EMR_HOST" << EOF
+hdfs dfs -put ~/data /
 python3 brexit-lang-master/scripts/analysis_1.py
 spark-submit brexit-lang-master/scripts/analysis_2.py
 spark-submit brexit-lang-master/scripts/analysis_3.py
