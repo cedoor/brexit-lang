@@ -1,4 +1,4 @@
-echo "Download scripts"
+echo -e "\nDownload scripts"
 
 ssh -i "$1" "$2" << EOF
 rm -fr *
@@ -9,12 +9,12 @@ echo "export PYSPARK_PYTHON=python3" >> ~/.bash_profile
 mkdir data
 EOF
 
-echo "Move data and .env"
+echo -e "\nMove data and .env"
 
 scp -r -i "$1" "$3" "$2:/home/hadoop"
 scp -i "$1" "$4" "$2:/home/hadoop/brexit-lang-master"
 
-echo "Run analysis"
+echo -e "\nRun analysis"
 
 ssh -i "$1" "$2" << EOF
 hdfs dfs -put ~/data/* /data

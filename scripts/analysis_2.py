@@ -4,13 +4,9 @@ from time import time
 
 from dotenv import load_dotenv
 from elasticsearch import Elasticsearch
-from nltk import download, word_tokenize, sent_tokenize
+from pyspark.ml.feature import RegexTokenizer
 from pyspark.sql import SparkSession, Row
-
-download('punkt')
-download('wordnet')
-download('omw')
-download('averaged_perceptron_tagger')
+from pyspark.sql.functions import explode, col
 
 
 # Define some console colors.
@@ -24,45 +20,6 @@ class Colors:
     UNDERLINE = '\033[4m'
 
 
-def categorize_words(words):
-    common_words = []
-    contextual_words = []
-
-    for word in words:
-        word_components = word.split(":")
-
-        if len(word_components) == 1:
-            common_words.append(word)
-        else:
-            contextual_words.append({
-                "word": word_components[0],
-                "included": word_components[1].split(","),
-                "excluded": word_components[2].split(",")
-            })
-
-    return {
-        "common": common_words,
-        "contextual": contextual_words
-    }
-
-
-def is_contextualized(sentence, contextual_words):
-    for contextual_word in contextual_words:
-        if contextual_word["word"] in sentence:
-            return (any(token in contextual_word["included"] for token in sentence) and
-                    all(token not in contextual_word["excluded"] for token in sentence))
-
-    return False
-
-
-def get_contextual_word(sentence, contextual_words):
-    for contextual_word in contextual_words:
-        if contextual_word["word"] in sentence:
-            return contextual_word["word"]
-
-    return ""
-
-
 def save_data(file_name, data):
     with open("./" + file_name + ".json", "w") as fp:
         json.dump(data, fp, indent=4, ensure_ascii=False)
@@ -70,34 +27,29 @@ def save_data(file_name, data):
     print(f"\n{Colors.OKGREEN}✔ Results saved in {file_name}.json file!{Colors.ENDC}")
 
 
-def analyze_newspaper(name, articles, words):
-    all_tokens = articles.rdd.flatMap(lambda article: word_tokenize(article.content.lower()))
-    token_occurrences = all_tokens.map(lambda token: (token, 1)).reduceByKey(lambda x, y: x + y)
-    token_occurrences = token_occurrences.filter(lambda x: x[0] in words["common"]).sortBy(lambda x: x[0])
+def analyze_newspaper(name, articles):
+    tokenized_articles = regex_tokenizer.transform(articles)
 
-    all_sentences = articles.rdd.flatMap(lambda article: sent_tokenize(article.content.lower()))
-    all_sentences = all_sentences.map(lambda sentence: word_tokenize(sentence))
-    sentence_occurrences = all_sentences.filter(lambda sentence: is_contextualized(sentence, words["contextual"]))
-    sentence_occurrences = sentence_occurrences.map(
-        lambda sentence: (get_contextual_word(sentence, words["contextual"]), 1)).reduceByKey(lambda x, y: x + y)
+    words = tokenized_articles.select(explode('tokens').alias('words'))
+    word_occurrences = words.groupBy('words').count().filter(col('words').isin(KEY_WORDS))
+
+    number_of_words = words.count()
 
     print(f"\n#### {Colors.OKGREEN}{name}{Colors.ENDC}:")
 
-    number_of_tokens = all_tokens.count()
-
     results = {
-        "number_of_tokens": number_of_tokens,
-        "word_occurrences": {}
+        "name": name,
+        "words": {}
     }
 
-    for word in token_occurrences.collect() + sentence_occurrences.collect():
-        normalized_occurrences = round(word[1] / number_of_tokens * 1000, 3)
+    for word in word_occurrences.collect():
+        normalized_occurrence = round(word["count"] / number_of_words * 1000, 3)
 
-        results["word_occurrences"][word[0]] = normalized_occurrences
+        results["words"][word["words"]] = normalized_occurrence
 
-        print(f"* {Colors.OKBLUE}{word[0]}{Colors.ENDC}: {normalized_occurrences}")
+        print(f"* {Colors.OKBLUE}{word['words']}{Colors.ENDC}: {word['count']}, {normalized_occurrence}")
 
-    save_data(name, results)
+    return results
 
 
 def list_to_data_frame(_list):
@@ -122,7 +74,7 @@ load_dotenv()
 # Get environment variables.
 ELASTIC_SEARCH_HOST = getenv("ELASTIC_SEARCH_HOST")
 DATA_FILES = getenv("DATA_FILES").split(" ")
-WORDS_TO_ANALYZE = getenv("WORDS_TO_ANALYZE").split(" ")
+KEY_WORDS = getenv("KEY_WORDS").split(" ")
 
 # Define Elastic Search instance.
 es = Elasticsearch(ELASTIC_SEARCH_HOST)
@@ -134,21 +86,21 @@ sc = spark.sparkContext
 # Set Spark log level to error (it will show only error messages).
 sc.setLogLevel("ERROR")
 
+# Define the Spark tokenizer.
+regex_tokenizer = RegexTokenizer(inputCol="content", outputCol="tokens", pattern="\\W")
+
 # Get all newspaper's names.
 newspaper_names = [path.splitext(file_name)[0] for file_name in DATA_FILES]
 
 # Get all the articles of each newspaper.
 newspaper_articles = [(name, list_to_data_frame(get_newspaper_articles(name))) for name in newspaper_names]
 
-categorized_words = categorize_words(WORDS_TO_ANALYZE)
-
 print(f"\n{Colors.BOLD}▶ Word occurrences:{Colors.ENDC}")
 
 start = time()
 
-# Analyze the newspapers (Spark Analysis).
-for name, articles in newspaper_articles:
-    analyze_newspaper(name, articles, categorized_words)
+# Analyze the newspapers.
+save_data("analysis_2", [analyze_newspaper(name, articles) for name, articles in newspaper_articles])
 
 end = time()
 

@@ -51,34 +51,33 @@ for index in newspaper_indices:
     }
 
     for word in WORDS_TO_ANALYZE:
-        if len(word.split(":")) == 1:
-            term_vector_response = es.termvectors(index=index, body="""{
-                "doc": { "content": "%s" },
-                "fields" : ["content"],
-                "term_statistics" : true,
-                "field_statistics" : true
-            }""" % word)
+        term_vector_response = es.termvectors(index=index, body="""{
+            "doc": { "content": "%s" },
+            "fields" : ["content"],
+            "term_statistics" : true,
+            "field_statistics" : true
+        }""" % word)
 
-            aggregation_response = es.search(index=index, body="""{   
-                "size": 0,
-                "aggs" : {
-                    "number_of_tokens" : { "sum" : { "field" : "content.length" } }
-                }
-            }""")
+        aggregation_response = es.search(index=index, body="""{   
+            "size": 0,
+            "aggs" : {
+                "number_of_tokens" : { "sum" : { "field" : "content.length" } }
+            }
+        }""")
 
-            number_of_tokens = aggregation_response["aggregations"]["number_of_tokens"]["value"]
+        number_of_tokens = aggregation_response["aggregations"]["number_of_tokens"]["value"]
 
-            results["number_of_tokens"] = number_of_tokens
+        results["number_of_tokens"] = number_of_tokens
 
-            word_statistics = term_vector_response["term_vectors"]["content"]["terms"][word]
+        word_statistics = term_vector_response["term_vectors"]["content"]["terms"][word]
 
-            if "ttf" in word_statistics:
-                total_term_frequency = term_vector_response["term_vectors"]["content"]["terms"][word]["ttf"]
-                normalized_occurrences = round(total_term_frequency / number_of_tokens * 1000, 3)
+        if "ttf" in word_statistics:
+            total_term_frequency = term_vector_response["term_vectors"]["content"]["terms"][word]["ttf"]
+            normalized_occurrences = round(total_term_frequency / number_of_tokens * 1000, 3)
 
-                results["word_occurrences"][word] = normalized_occurrences
+            results["word_occurrences"][word] = normalized_occurrences
 
-                print(f" {Colors.OKBLUE}{word}{Colors.ENDC}: {normalized_occurrences}")
+            print(f" {Colors.OKBLUE}{word}{Colors.ENDC}: {normalized_occurrences}")
 
     save_data(index, results)
 
