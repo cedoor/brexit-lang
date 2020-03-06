@@ -50,7 +50,7 @@ for index in newspaper_indices:
         "word_occurrences": {}
     }
 
-    for word in WORDS_TO_ANALYZE:
+    for word in KEY_WORDS:
         term_vector_response = es.termvectors(index=index, body="""{
             "doc": { "content": "%s" },
             "fields" : ["content"],
