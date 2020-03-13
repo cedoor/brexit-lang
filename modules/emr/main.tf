@@ -1,5 +1,5 @@
 # EMR configuration.
-resource "aws_emr_cluster" "emr-cluster" {
+resource "aws_emr_cluster" "emr_cluster" {
   name = var.name
   release_label = var.release_label
   applications = var.applications

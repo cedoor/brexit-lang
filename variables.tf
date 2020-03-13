@@ -21,3 +21,7 @@ variable "emr_master_ebs_size" {}
 variable "emr_core_instance_type" {}
 variable "emr_core_instance_count" {}
 variable "emr_core_ebs_size" {}
+
+variable "ec2_ami" {}
+variable "ec2_instance_count" {}
+variable "ec2_instance_type" {}
