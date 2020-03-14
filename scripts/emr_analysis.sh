@@ -1,4 +1,4 @@
-echo -e "\nDownload scripts"
+echo -e "\nDownloading scripts..."
 
 ENV_FILE_PATH="$1"
 
@@ -13,12 +13,12 @@ echo "export PYSPARK_PYTHON=python3" >> ~/.bash_profile
 mkdir data
 EOF
 
-echo -e "\nMove data and .env"
+echo -e "\nMoving json data and .env file..."
 
 scp -r -i "$IDENTITY_FILE_PATH" "$DATA_PATH" "$EMR_HOST:/home/hadoop"
 scp -i "$IDENTITY_FILE_PATH" "$ENV_FILE_PATH" "$EMR_HOST:/home/hadoop/brexit-lang-master"
 
-echo -e "\nRun analysis"
+echo -e "\nRunning analysis..."
 
 ssh -i "$IDENTITY_FILE_PATH" "$EMR_HOST" << EOF
 hdfs dfs -put ~/data /
