@@ -35,8 +35,9 @@ EOF
 
 startAnalysis() {
     ssh -T -o StrictHostKeyChecking=no -i "$IDENTITY_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}" << EOF
-        ./spark/bin/spark-submit brexit-lang/scripts/analysis.py
+        ./spark/bin/spark-submit --master "spark://${EC2_HOSTS[0]}:7077" brexit-lang/scripts/analysis.py
 EOF
+    scp -q -i "$IDENTITY_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}:/home/ubuntu/analysis_results.json" "$HOME/Downloads"
 }
 
 echo -e "\n───────────────▄▄───▐█
@@ -46,10 +47,11 @@ echo -e "\n───────────────▄▄───▐█
 ▌▀▄─▐──▀▄─▐▄─▐▄▐▄─▐▄─▐▄
 \n${TEXT_PRIMARY}♦ EC2 cluster analysis${NC}"
 
-progress installBrexitLang "Installing BrexitLang from repository"
+progress installBrexitLang "• Installing BrexitLang from repository"
 
-progress uploadData "Uploding analysis data"
+progress uploadData "• Uploding analysis data"
 
-progress startAnalysis "Running analysis"
+echo -e "\n• Running analysis:\n"
+startAnalysis
 
 echo -e "\n${TEXT_SUCCESS}EC2 cluster analysis completed!${NC}\n"

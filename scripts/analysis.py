@@ -3,7 +3,6 @@ from os import path, getenv
 from time import time
 
 from dotenv import load_dotenv
-from elasticsearch import Elasticsearch
 from pyspark.ml.feature import RegexTokenizer
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import explode, col
@@ -60,9 +59,6 @@ ELASTIC_SEARCH_HOST = getenv("ELASTIC_SEARCH_HOST")
 DATA_FILES = getenv("DATA_FILES").split(" ")
 KEY_WORDS = getenv("KEY_WORDS").split(" ")
 
-# Define Elastic Search instance.
-es = Elasticsearch(ELASTIC_SEARCH_HOST)
-
 # Define Spark context.
 spark = SparkSession.builder.master("local[*]").getOrCreate()
 sc = spark.sparkContext
@@ -84,7 +80,7 @@ print(f"\n{Colors.BOLD}▶ Word occurrences:{Colors.ENDC}")
 start = time()
 
 # Analyze the newspapers.
-save_data("analysis_3", [analyze_newspaper(name, articles) for name, articles in newspaper_articles])
+save_data("analysis_results", [analyze_newspaper(name, articles) for name, articles in newspaper_articles])
 
 end = time()
 
