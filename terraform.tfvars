@@ -30,9 +30,3 @@ emr_master_ebs_size = 50
 emr_core_instance_type = "m4.large"
 emr_core_instance_count = 2
 emr_core_ebs_size = 50
-
-#_____ EC2 _____#
-
-ec2_ami = "ami-07ebfd5b3428b6f4d"
-ec2_instance_count = 2
-ec2_instance_type = "t2.micro"
