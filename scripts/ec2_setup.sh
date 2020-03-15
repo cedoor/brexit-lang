@@ -9,7 +9,6 @@ ENV_FILE_PATH="$1"
 SCRIPT_PATH=$(dirname "$(readlink -f "$0")")
 
 # External scripts.
-source "$SCRIPT_PATH/colors.sh"
 source "$SCRIPT_PATH/utils.sh"
 source "$ENV_FILE_PATH"
 

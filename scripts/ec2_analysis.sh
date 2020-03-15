@@ -9,7 +9,6 @@ ENV_FILE_PATH="$1"
 SCRIPT_PATH=$(dirname "$(readlink -f "$0")")
 
 # External scripts.
-source "$SCRIPT_PATH/colors.sh"
 source "$SCRIPT_PATH/utils.sh"
 source "$ENV_FILE_PATH"
 
@@ -47,9 +46,9 @@ echo -e "\n───────────────▄▄───▐█
 ▌▀▄─▐──▀▄─▐▄─▐▄▐▄─▐▄─▐▄
 \n${TEXT_PRIMARY}♦ EC2 cluster analysis${NC}"
 
-# progress installBrexitLang "Installing BrexitLang from repository"
+progress installBrexitLang "Installing BrexitLang from repository"
 
-# progress uploadData "Uploding analysis data"
+progress uploadData "Uploding analysis data"
 
 progress startAnalysis "Running analysis"
 
