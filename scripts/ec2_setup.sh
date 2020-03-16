@@ -89,19 +89,17 @@ EOF
 }
 
 startHadoopCluster () {
-  ssh -T -o StrictHostKeyChecking=no -i "$IDENTITY_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}" << EOF
-      hdfs namenode -format 2> /dev/null <<< Y > /dev/null
-      cd \$HADOOP_HOME/sbin/
-      ./start-dfs.sh
-      ./start-yarn.sh
-      ./mr-jobhistory-daemon.sh start historyserver
+    ssh -T -o StrictHostKeyChecking=no -i "$IDENTITY_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}" << EOF
+        hdfs namenode -format 2> /dev/null <<< Y > /dev/null
+        cd \$HADOOP_HOME/sbin/
+        ./start-dfs.sh && ./start-yarn.sh && ./mr-jobhistory-daemon.sh start historyserver
 EOF
 }
 
 startSparkOnMaster () {
-  ssh -T -o StrictHostKeyChecking=no -i "$IDENTITY_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}" << EOF
-      ./spark/sbin/stop-master.sh
-      ./spark/sbin/start-master.sh
+    ssh -T -o StrictHostKeyChecking=no -i "$IDENTITY_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}" << EOF
+        ./spark/sbin/stop-master.sh
+        ./spark/sbin/start-master.sh
 EOF
 }
 
@@ -121,35 +119,35 @@ echo -e "\n───────────────▄▄───▐█
 ▌▀▄─▐──▀▄─▐▄─▐▄▐▄─▐▄─▐▄
 \n${TEXT_PRIMARY}♦ EC2 cluster setup${NC}"
 
-for i in "${!EC2_HOSTS[@]}"; do
-    EC2_HOST=${EC2_HOSTS[$i]}
-
-    echo -e "\nHost ${TEXT_WARNING}$EC2_HOST${NC} setup:"
-
-    progress installSystemPackages "• Installing system packages"
-
-    progress installHadoop "• Installing Hadoop"
-
-    progress installSpark "• Installing Spark"
-
-    progress configureHadoop "• Hadoop configuration"
-
-    if [ "$i" = "0" ]; then
-        progress configureMaster "• Master node configuration"
-    fi
-
-    if [ "$i" != "0" ]; then
-        progress configureSlave "• Slave node configuration"
-    fi
-done
+#for i in "${!EC2_HOSTS[@]}"; do
+#    EC2_HOST=${EC2_HOSTS[$i]}
+#
+#    echo -e "\nHost ${TEXT_WARNING}$EC2_HOST${NC} setup:"
+#
+#    progress installSystemPackages "• Installing system packages"
+#
+#    progress installHadoop "• Installing Hadoop"
+#
+#    progress installSpark "• Installing Spark"
+#
+#    progress configureHadoop "• Hadoop configuration"
+#
+#    if [ "$i" = "0" ]; then
+#        progress configureMaster "• Master node configuration"
+#    fi
+#
+#    if [ "$i" != "0" ]; then
+#        progress configureSlave "• Slave node configuration"
+#    fi
+#done
 
 echo -e "\n• Running Hadoop cluster:"
 startHadoopCluster
 
-echo -e "\n• Running Spark on master:"
-startSparkOnMaster
-
-echo -e "\n• Running Spark on slaves:"
-startSparkOnSlaves
+#echo -e "\n• Running Spark on master:"
+#startSparkOnMaster
+#
+#echo -e "\n• Running Spark on slaves:"
+#startSparkOnSlaves
 
 echo -e "\n${TEXT_SUCCESS}EC2 cluster setup completed!${NC}\n"
