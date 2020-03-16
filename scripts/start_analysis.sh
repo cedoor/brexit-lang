@@ -51,7 +51,7 @@ progress installBrexitLang "• Installing BrexitLang from repository"
 
 progress uploadData "• Uploding analysis data"
 
-echo -e "\n• Running analysis:\n"
+echo -e "\n• Running analysis:"
 startAnalysis
 
 echo -e "\n${TEXT_SUCCESS}EC2 cluster analysis completed!${NC}\n"

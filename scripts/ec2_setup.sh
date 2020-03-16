@@ -88,20 +88,28 @@ EOF
     ssh -i "$IDENTITY_FILE_PATH" "ubuntu@$EC2_HOST" "cat >> ~/.ssh/authorized_keys" < /tmp/id_rsa.pub
 }
 
-startMaster () {
+startHadoopCluster () {
   ssh -T -o StrictHostKeyChecking=no -i "$IDENTITY_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}" << EOF
       hdfs namenode -format 2> /dev/null <<< Y > /dev/null
-      \$HADOOP_HOME/sbin/start-dfs.sh &> /dev/null
-      \$HADOOP_HOME/sbin/start-yarn.sh &> /dev/null
-      \$HADOOP_HOME/sbin/mr-jobhistory-daemon.sh start historyserver &> /dev/null
-      ./spark/sbin/start-master.sh &> /dev/null
+      cd \$HADOOP_HOME/sbin/
+      ./start-dfs.sh
+      ./start-yarn.sh
+      ./mr-jobhistory-daemon.sh start historyserver
 EOF
 }
 
-startSlaves () {
+startSparkOnMaster () {
+  ssh -T -o StrictHostKeyChecking=no -i "$IDENTITY_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}" << EOF
+      ./spark/sbin/stop-master.sh
+      ./spark/sbin/start-master.sh
+EOF
+}
+
+startSparkOnSlaves () {
     for EC2_HOST in "${EC2_HOSTS[@]:1}"; do
         ssh -T -o StrictHostKeyChecking=no -i "$IDENTITY_FILE_PATH" "ubuntu@$EC2_HOST" << EOF
-            ./spark/sbin/start-slave.sh "spark://${EC2_HOSTS[0]}:7077" &> /dev/null
+            ./spark/sbin/stop-slave.sh "spark://${EC2_HOSTS[0]}:7077"
+            ./spark/sbin/start-slave.sh "spark://${EC2_HOSTS[0]}:7077"
 EOF
     done
 }
@@ -135,8 +143,13 @@ for i in "${!EC2_HOSTS[@]}"; do
     fi
 done
 
-progress startMaster "• Running master"
+echo -e "\n• Running Hadoop cluster:"
+startHadoopCluster
 
-progress startSlaves "• Running slaves"
+echo -e "\n• Running Spark on master:"
+startSparkOnMaster
+
+echo -e "\n• Running Spark on slaves:"
+startSparkOnSlaves
 
 echo -e "\n${TEXT_SUCCESS}EC2 cluster setup completed!${NC}\n"

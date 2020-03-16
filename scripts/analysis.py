@@ -60,7 +60,7 @@ DATA_FILES = getenv("DATA_FILES").split(" ")
 KEY_WORDS = getenv("KEY_WORDS").split(" ")
 
 # Define Spark context.
-spark = SparkSession.builder.master("local[*]").getOrCreate()
+spark = SparkSession.builder.appName("BrexitLang").getOrCreate()
 sc = spark.sparkContext
 
 # Set Spark log level to error (it will show only error messages).
@@ -74,6 +74,8 @@ newspaper_names = [path.splitext(file_name)[0] for file_name in DATA_FILES]
 
 # Get all the articles of each newspaper.
 newspaper_articles = [(path.splitext(file_name)[0], spark.read.json(f"/data/{file_name}")) for file_name in DATA_FILES]
+
+print(f"\n{Colors.BOLD}Cluster nodes: {sc._jsc.sc().getExecutorMemoryStatus().size()}")
 
 print(f"\n{Colors.BOLD}▶ Word occurrences:{Colors.ENDC}")
 
