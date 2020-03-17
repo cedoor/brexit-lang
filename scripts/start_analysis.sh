@@ -21,7 +21,6 @@ installBrexitLang() {
         unzip -q master.zip
         rm -fr master.zip brexit-lang
         mv brexit-lang-master brexit-lang
-        pip3 install --user -q -r brexit-lang/requirements.txt
 EOF
 }
 
