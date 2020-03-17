@@ -67,7 +67,7 @@ EOF
 
 configureMaster() {
     ssh -T -o StrictHostKeyChecking=no -i "$IDENTITY_FILE_PATH" "ubuntu@$EC2_HOST" << EOF
-        echo "<configuration ><property><name>dfs.replication</name><value>2</value></property><property><name>dfs.namenode.name.dir</name><value>file:///home/ubuntu/hadoop/data/hdfs/namenode</value></property></configuration>" > \$HADOOP_CONF_DIR/hdfs-site.xml
+        echo "<configuration ><property><name>dfs.replication</name><value>${#EC2_HOSTS[@]}</value></property><property><name>dfs.namenode.name.dir</name><value>file:///home/ubuntu/hadoop/data/hdfs/namenode</value></property></configuration>" > \$HADOOP_CONF_DIR/hdfs-site.xml
         mkdir -p \$HADOOP_HOME/data/hdfs/namenode
         rm -f \$HADOOP_CONF_DIR/slaves \$HADOOP_CONF_DIR/masters
         echo "$EC2_HOST" >> \$HADOOP_CONF_DIR/masters
@@ -82,7 +82,7 @@ EOF
 
 configureSlave() {
     ssh -T -o StrictHostKeyChecking=no -i "$IDENTITY_FILE_PATH" "ubuntu@$EC2_HOST" << EOF
-        echo "<configuration ><property><name>dfs.replication</name><value>2</value></property><property><name>dfs.datanode.data.dir</name><value>file:///home/ubuntu/hadoop/data/hdfs/datanode</value></property></configuration>" > \$HADOOP_CONF_DIR/hdfs-site.xml
+        echo "<configuration ><property><name>dfs.replication</name><value>${#EC2_HOSTS[@]}</value></property><property><name>dfs.datanode.data.dir</name><value>file:///home/ubuntu/hadoop/data/hdfs/datanode</value></property></configuration>" > \$HADOOP_CONF_DIR/hdfs-site.xml
         mkdir -p \$HADOOP_HOME/data/hdfs/datanode
 EOF
     ssh -i "$IDENTITY_FILE_PATH" "ubuntu@$EC2_HOST" "cat >> ~/.ssh/authorized_keys" < /tmp/id_rsa.pub
@@ -141,13 +141,10 @@ for i in "${!EC2_HOSTS[@]}"; do
     fi
 done
 
-echo -e "\n• Running Hadoop cluster:"
-startHadoopCluster
+progress startHadoopCluster "• Running Hadoop cluster"
 
-echo -e "\n• Running Spark on master:"
-startSparkOnMaster
+progress startSparkOnMaster "• Running Spark on master"
 
-echo -e "\n• Running Spark on slaves:"
-startSparkOnSlaves
+progress startSparkOnSlaves "• Running Spark on slaves"
 
 echo -e "\n${TEXT_SUCCESS}EC2 cluster setup completed!${NC}\n"

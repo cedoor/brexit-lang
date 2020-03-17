@@ -26,7 +26,7 @@ EOF
 
 uploadData() {
     scp -q -r -i "$IDENTITY_FILE_PATH" "$DATA_PATH" "ubuntu@${EC2_HOSTS[0]}:/home/ubuntu"
-    scp -q -i "$IDENTITY_FILE_PATH" "$ENV_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}:/home/ubuntu/brexit-lang"
+    scp -q -i "$IDENTITY_FILE_PATH" "$ENV_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}:/home/ubuntu"
     ssh -T -o StrictHostKeyChecking=no -i "$IDENTITY_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}" << EOF
         hdfs dfs -put ~/data /
 EOF
