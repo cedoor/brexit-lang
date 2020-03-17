@@ -58,7 +58,7 @@ def merge_articles(newspaper_names):
     dataframes = []
 
     for newspaper_name in newspaper_names:
-        newspapers = spark.read.json(f"hdfs://master:9000/data/{newspaper_name}.json")
+        newspapers = spark.read.json(f"hdfs:///data/{newspaper_name}.json")
         dataframe = newspapers.withColumn("newspaper", lit(newspaper_name))
 
         dataframes.append(dataframe)
@@ -110,7 +110,7 @@ newspapers = filtered_token_occurrences.groupBy('newspaper').agg(
     collect_list('token_occurrence').alias("token_occurrences")
 )
 # Add total number of tokens for each newspaper.
-newspapers = token_occurrences.groupBy('newspaper').count().join(newspapers, "newspaper")
+newspapers = all_tokens.groupBy('newspaper').count().join(newspapers, "newspaper")
 # Save all results in a structured object.
 results = [{
     "name": newspaper["newspaper"],
