@@ -2,7 +2,7 @@
 
 Language analysis of Brexit debate using Terraform and AWS EC2 instances with Spark.
 
-Spark script simply counts the number of occurrences of a token in the articles of the various newspapers, normalizing the value based on the total number of tokens. All data we used were obtained with Python scripts on `https://github.com/cedoor/brexit-news` repository, in which for each newspaper we obtained a JSON file with a list of articles.
+Spark script simply counts the number of occurrences of a token in the articles of the various newspapers, normalizing the value based on the total number of tokens. All data we used were obtained with Python scripts on [brexit-news](https://github.com/cedoor/brexit-news) repository, in which for each newspaper we obtained a JSON file with a list of articles.
 ___
 
 ## :paperclip: Table of Contents
