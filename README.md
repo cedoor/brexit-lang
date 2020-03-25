@@ -44,18 +44,24 @@ EC2_HOSTS="ec2-0-0-0-0.compute-1.amazonaws.com ec2-0-0-0-1.compute-1.amazonaws.c
 IDENTITY_FILE_PATH="/home/pippo/.ssh/amazon.pem"
 DATA_PATH="/home/pippo/Projects/BrexitLang/brexit-news/data"
 DATA_FILES="indipendent.json daily_star.json the_guardian.json the_telegraph.json"
-KEY_TOKENS="but although seem appear suggest suppose think sometimes often"
+KEY_TOKENS="but although seem appear suggest suppose think sometimes often usually likelihood assumption possibility likely unlikely conceivable conceivably probable probably roughly sort they could would we"
 ```
 where:
-* `EC2_HOSTS` is a list of AWS EC2 host URLs (cluster node URLs) obtained with Terraform (as we will see later);
-* `IDENTITY_FILE_PATH` is the AWS pem file path. You can create it in `key pairs` section of AWS EC2 page;
+* `EC2_HOSTS` is a list of AWS EC2 host URLs (cluster node URLs) obtained with Terraform (the `run.py` file will redirect to the [istances](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Instances:sort=instanceId) section when created if used);
+* `IDENTITY_FILE_PATH` is the AWS pem file path. You can create it in [key pairs](https://eu-west-2.console.aws.amazon.com/ec2/v2/home?region=eu-west-2#KeyPairs:) section of AWS EC2 page. In order to go everything smoothly it is important to call the file `amazon.pem`;
 * `DATA_PATH` is the directory path of JSON data;
-* `DATA_FILES` is a list of JSON data files to analyze;
+* `DATA_FILES` is a list of JSON data files to analyze. Data has to be in the following format:
+```json
+{"title": "title content", "url": "url content", "timestamp": 1540252800000, "content": "body content"}
+{"title": "title content", "url": "url content", "timestamp": 1540228613000, "content": "body content"}
+{"title": "title content", "url": "url content", "timestamp": 1522188456900, "content": "body content"}
+```
+;
 * `KEY_TOKENS` is a list of words (tokens) to analyze.
 
-2. Run `aws configure` to save your credentials on `~/.aws/credentials` file.
+2. Run `aws configure` to save your credentials on local `~/.aws/credentials` file.
 
-3. Set your AWS parameters on `terraform.tfvars` file. In particular, you need to update `vpc_security_group_id` variable with your AWS security group ID and:
+3. Set your AWS parameters on `terraform.tfvars` file. In particular, you need to update `vpc_security_group_id` variable with your AWS security group ID conteined in [security groups](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#SecurityGroups:sort=desc:description) section. Also:
 * `ec2_ami` for your Amazon machine image;
 * `ec2_instance_count` for the number of cluster nodes;
 * `ec2_instance_type` for the type of instances.
@@ -65,12 +71,21 @@ where:
 ```bash
 terraform init
 terraform apply
+```
+Again, when the last command finishes running you must update the `EC2_HOSTS` variable in your local `.env` file. The DNS of your hosts are in [istances](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Instances:sort=instanceId) section. The first one must be the master.
+
+Now you can go on.
+```bash
 bash scripts/ec2_setup.sh .env
 bash scripts/start_analysis.sh .env
 terraform destroy
 ```
 
-Analysis results will be saved in `~/Downloads` folder as JSON file.
+If you want to iterate the operation with different configurations, you can edit the `constant.py` file and then run the `run.py` file. Outputs of different configurations will be saved in the `output` folder inside this repository.
+
+Terminal outputs of `scripts/start_analysis.sh .env` command have useful information, like the `execution time`.
+
+Analysis results will be saved in local `~/Downloads` folder as JSON file called `analysis_results.json`.
 
 ## :chart_with_upwards_trend: Development
 
