@@ -4,9 +4,10 @@ from functools import reduce
 from os import path, getenv, environ
 from time import time
 
-from pyspark.ml.feature import RegexTokenizer
+from pyspark.ml import Pipeline
+from pyspark.ml.feature import RegexTokenizer, HashingTF, IDF
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import DataFrame, lit, explode, col, count, collect_list
+from pyspark.sql.functions import DataFrame, lit
 
 
 # Define some console colors.
@@ -73,8 +74,6 @@ load_env_variables(".env")
 LEAVER_NEWSPAPER_FILES = getenv("LEAVER_NEWSPAPER_FILES").split(" ")
 REMAIN_NEWSPAPER_FILES = getenv("REMAIN_NEWSPAPER_FILES").split(" ")
 NEUTRAL_NEWSPAPER_FILE = getenv("NEUTRAL_NEWSPAPER_FILE").split(" ")
-DATA_FILES = LEAVER_NEWSPAPER_FILES + REMAIN_NEWSPAPER_FILES + NEUTRAL_NEWSPAPER_FILE
-KEY_TOKENS = getenv("KEY_TOKENS").split(" ")
 
 # Define Spark context.
 spark = SparkSession.builder.appName("BrexitLang").getOrCreate()
@@ -84,45 +83,40 @@ sc = spark.sparkContext
 sc.setLogLevel("ERROR")
 
 # Merge all newspaper articles.
-all_articles = merge_articles(DATA_FILES)
+leaver_articles = merge_articles(LEAVER_NEWSPAPER_FILES).withColumn("label", 0)
+remain_articles = merge_articles(REMAIN_NEWSPAPER_FILES).withColumn("label", 1)
+
+# ...
+brexit_articles = reduce(DataFrame.union, [leaver_articles, remain_articles])
 
 # Create n partitions, where n is the number of newspapers to analyze.
-all_articles = all_articles.repartition(len(DATA_FILES))
+brexit_articles = brexit_articles.repartition(len(LEAVER_NEWSPAPER_FILES) + len(REMAIN_NEWSPAPER_FILES))
+
+# Regular expression tokenizer.
+regex_tokenizer = RegexTokenizer(inputCol="content", outputCol="tokens", pattern="\\W")
+
+# Add HashingTF and IDF to transformation.
+hashing_TF = HashingTF(inputCol="tokens", outputCol="rawFeatures", numFeatures=10000)
+idf = IDF(inputCol="rawFeatures", outputCol="features", minDocFreq=5)
 
 print(f"\n{Colors.BOLD}▶ Cluster nodes: {sc._jsc.sc().getExecutorMemoryStatus().size()}")
 
-# Define the Spark tokenizer.
-regex_tokenizer = RegexTokenizer(inputCol="content", outputCol="tokens", pattern="\\W")
-
 start = time()
 
-# Tokenize all articles.
-tokenized_articles = regex_tokenizer.transform(all_articles)
-# Expand all tokens.
-all_tokens = tokenized_articles.select(explode('tokens').alias('token'), 'newspaper')
-# Count token occurrences for each newspaper.
-token_occurrences = all_tokens.groupBy('token', 'newspaper').agg(count("*").alias("token_occurrence"))
-# Filter tokens using to find only key words.
-filtered_token_occurrences = token_occurrences.filter(col('token').isin(KEY_TOKENS))
-# Group by newspapers.
-newspapers = filtered_token_occurrences.groupBy('newspaper').agg(
-    collect_list('token').alias("tokens"),
-    collect_list('token_occurrence').alias("token_occurrences")
-)
-# Add total number of tokens for each newspaper.
-newspapers = all_tokens.groupBy('newspaper').count().join(newspapers, "newspaper")
-# Save all results in a structured object.
-results = [{
-    "name": newspaper["newspaper"],
-    "total_tokens": newspaper["count"],
-    "tokens": {
-        token: round(newspaper["token_occurrences"][i] / newspaper["count"] * 1000, 3)
-        for i, token in enumerate(newspaper["tokens"])
-    }
-} for newspaper in newspapers.collect()]
+pipeline = Pipeline(stages=[regex_tokenizer, hashing_TF, idf])
+
+# Fit the pipeline to training documents.
+pipeline_fit = pipeline.fit(brexit_articles)
+dataset = pipeline_fit.transform(brexit_articles)
+
+# Randomly split data into training and test sets, and set seed for reproducibility.
+(training_data, test_data) = dataset.randomSplit([0.7, 0.3], seed=100)
+
+print(f"Training set articles: {str(training_data.count())}")
+print(f"Test set articles: {str(test_data.count())}")
 
 end = time()
 
-save_data("analysis_results", results)
+# save_data("classification_results", results)
 
 print(f"\n{Colors.BOLD}▶ Execution time:{Colors.ENDC} {round(end - start, 3)}")

@@ -1,5 +1,5 @@
 #
-# Analysis script.
+# Classification script.
 #
 
 # Get the parameter (path of .env file).
@@ -15,11 +15,11 @@ source "$ENV_FILE_PATH"
 # Convert one-space separeted strings in array.
 EC2_HOSTS=($EC2_HOSTS)
 
-startAnalysis() {
+startClassification() {
     ssh -T -o StrictHostKeyChecking=no -i "$IDENTITY_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}" << EOF
         ./spark/bin/spark-submit --master "spark://${EC2_HOSTS[0]}:7077" brexit-lang/scripts/analysis.py
 EOF
-    scp -q -i "$IDENTITY_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}:/home/ubuntu/analysis_results.json" "$HOME/Downloads"
+    scp -q -i "$IDENTITY_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}:/home/ubuntu/classification_results.json" "$HOME/Downloads"
 }
 
 echo -e "\n───────────────▄▄───▐█
@@ -27,9 +27,9 @@ echo -e "\n───────────────▄▄───▐█
 ─▄██▀█▌─██▄▄──▐█▀▄─▐█▀
 ▐█▀▀▌───▄▀▌─▌─█─▌──▌─▌
 ▌▀▄─▐──▀▄─▐▄─▐▄▐▄─▐▄─▐▄
-\n${TEXT_PRIMARY}♦ Brexit language analysis${NC}"
+\n${TEXT_PRIMARY}♦ Brexit language classification${NC}"
 
-echo -e "\n• Running analysis:"
-startAnalysis
+echo -e "\n• Running classification:"
+startClassification
 
-echo -e "\n${TEXT_SUCCESS}Brexit language analysis completed, results saved on \"analysis_results.json\" file!${NC}\n"
+echo -e "\n${TEXT_SUCCESS}Brexit language classification completed, results saved on \"classification_results.json\" file!${NC}\n"
