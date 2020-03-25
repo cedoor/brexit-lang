@@ -2,7 +2,10 @@
 
 Language analysis of Brexit debate using Terraform and AWS EC2 instances with Spark.
 
-Spark script simply counts the number of occurrences of a token in the articles of the various newspapers, normalizing the value based on the total number of tokens. All data we used were obtained with Python scripts on [brexit-news](https://github.com/epilurzu/brexit-news) repository, in which for each newspaper we obtained a JSON file with a list of articles.
+Spark script simply counts the number of occurrences of a token in the articles of the various newspapers, normalizing the value based on the total number of tokens.
+
+All data we used were obtained with Python scripts on [brexit-news](https://github.com/epilurzu/brexit-news) repository, in which for each newspaper we obtained a JSON file with a list of articles.
+
 ___
 
 ## :paperclip: Table of Contents
@@ -18,12 +21,12 @@ ___
 
 ## :hammer: Install
 
-With the following packages installed:
+You must have the following packages installed on the system:
 - git
 - python 3
 - pip 3
-- terraform
-- aws-cli
+- [terraform](https://www.terraform.io/docs/cli-index.html)
+- [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html)
 
 Clone the repo and install the dependencies from npm.
 
@@ -47,21 +50,20 @@ DATA_FILES="indipendent.json daily_star.json the_guardian.json the_telegraph.jso
 KEY_TOKENS="but although seem appear suggest suppose think sometimes often usually likelihood assumption possibility likely unlikely conceivable conceivably probable probably roughly sort they could would we"
 ```
 where:
-* `EC2_HOSTS` is a list of AWS EC2 host URLs (cluster node URLs) obtained with Terraform (the `run.py` file will redirect to the [istances](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Instances:sort=instanceId) section when created if used);
-* `IDENTITY_FILE_PATH` is the AWS pem file path. You can create it in [key pairs](https://eu-west-2.console.aws.amazon.com/ec2/v2/home?region=eu-west-2#KeyPairs:) section of AWS EC2 page. In order to go everything smoothly it is important to call the file `amazon.pem`;
-* `DATA_PATH` is the directory path of JSON data;
-* `DATA_FILES` is a list of JSON data files to analyze. Data has to be in the following format:
+* `EC2_HOSTS` is a list of AWS EC2 host URLs (cluster node URLs) obtained with `terraform apply` command;
+* `IDENTITY_FILE_PATH` is the AWS pem file path. You can create it in [key pairs](https://eu-west-2.console.aws.amazon.com/ec2/v2/home?region=eu-west-2#KeyPairs:) section of AWS EC2 page. It is important to call this file `amazon.pem`;
+* `DATA_PATH` is the directory path of JSON data with newspaper articles;
+* `DATA_FILES` is a list of JSON data files (one for each newspaper) to analyze. Data has to be in the following format:
 ```json
-{"title": "title content", "url": "url content", "timestamp": 1540252800000, "content": "body content"}
-{"title": "title content", "url": "url content", "timestamp": 1540228613000, "content": "body content"}
-{"title": "title content", "url": "url content", "timestamp": 1522188456900, "content": "body content"}
+{"title": "article title", "url": "article url", "timestamp": 1540252800000, "content": "article body"}
+{"title": "article title", "url": "article url", "timestamp": 1540228613000, "content": "article body"}
+{"title": "article title", "url": "article url", "timestamp": 1522188456900, "content": "article body"}
 ```
-;
 * `KEY_TOKENS` is a list of words (tokens) to analyze.
 
 2. Run `aws configure` to save your credentials on local `~/.aws/credentials` file.
 
-3. Set your AWS parameters on `terraform.tfvars` file. In particular, you need to update `vpc_security_group_id` variable with your AWS security group ID conteined in [security groups](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#SecurityGroups:sort=desc:description) section. Also:
+3. Set your AWS parameters on `terraform.tfvars` file. In particular, you need to update `vpc_security_group_id` variable with your AWS security group ID conteined in [security groups](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#SecurityGroups:sort=desc:description) section. And finally:
 * `ec2_ami` for your Amazon machine image;
 * `ec2_instance_count` for the number of cluster nodes;
 * `ec2_instance_type` for the type of instances.
@@ -72,7 +74,7 @@ where:
 terraform init
 terraform apply
 ```
-Again, when the last command finishes running you must update the `EC2_HOSTS` variable in your local `.env` file. The DNS of your hosts are in [istances](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Instances:sort=instanceId) section. The first one must be the master.
+Again, when `terraform apply` command execution ends and prints the cluster instance information, you must update the `EC2_HOSTS` variable in your local `.env` file with the DNS of the cluster [istances](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Instances:sort=instanceId) created. The first one must be the master.
 
 Now you can go on.
 ```bash
@@ -80,10 +82,6 @@ bash scripts/ec2_setup.sh .env
 bash scripts/start_analysis.sh .env
 terraform destroy
 ```
-
-If you want to iterate the operation with different configurations, you can edit the `constant.py` file and then run the `run.py` file. Outputs of different configurations will be saved in the `output` folder inside this repository.
-
-Terminal outputs of `scripts/start_analysis.sh .env` command have useful information, like the `execution time`.
 
 Analysis results will be saved in local `~/Downloads` folder as JSON file called `analysis_results.json`.
 
