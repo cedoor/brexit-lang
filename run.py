@@ -1,4 +1,5 @@
 import os
+from constant import *
 
 def sh(script):
     os.system("bash -c '%s'" % script)
@@ -54,38 +55,8 @@ def update_env_file(instance_count):
 
     set_lines(".env", lines)
 
-
-instance_counts = [
-    #"2",  #1 master, 1 slave
-    #"3",  #1 master, 2 slave
-    #"5",  #1 master, 4 slave
-    #"9"   #1 master, 8 slave
-    ]
-
-instance_types = [
-    #"a1.medium",
-    #"a1.large",
-    #"a1.xlarge",
-    #"t2.nano",
-    #"t2.micro",
-    #"t2.small",
-    #"t2.medium",
-    #"t2.large",
-    #"t2.xlarge",
-    #"t2.2xlarge",
-    #"m5.large",
-    #"m5.xlarge",
-    #"m5.2xlarge",
-    #"m4.large",
-    #"m4.xlarge",
-    #"c5.large",
-    #"c5.xlarge",
-    #"c4.large",
-    #"c4.xlarge"
-    ]
-
-for instance_type in instance_types:
-    for instance_count in instance_counts:
+for instance_type in INSTANCE_TYPES:
+    for instance_count in INSTANCE_COUNTS:
         sh("terraform init")
         
         update_terraform_file(instance_count, instance_type)
