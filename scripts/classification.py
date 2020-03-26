@@ -5,6 +5,7 @@ from os import path, getenv, environ
 from time import time
 
 from pyspark.ml import Pipeline
+from pyspark.ml.classification import LogisticRegression
 from pyspark.ml.feature import RegexTokenizer, HashingTF, IDF
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import DataFrame, lit
@@ -55,16 +56,30 @@ def save_data(file_name, data):
     print(f"\n{Colors.OKGREEN}Results saved in {file_name}.json file!{Colors.ENDC}")
 
 
+def get_data(newspaper_filename):
+    newspapers = spark.read.json(f"hdfs:///data/{newspaper_filename}")
+    return newspapers.withColumn("newspaper", lit(path.splitext(newspaper_filename)[0]))
+
+
 def merge_articles(newspaper_filenames):
-    dataframes = []
+    return reduce(DataFrame.union, [get_data(newspaper_filename) for newspaper_filename in newspaper_filenames])
 
-    for newspaper_filename in newspaper_filenames:
-        newspapers = spark.read.json(f"hdfs:///data/{newspaper_filename}")
-        dataframe = newspapers.withColumn("newspaper", lit(path.splitext(newspaper_filename)[0]))
 
-        dataframes.append(dataframe)
+def train_model(data, number_of_partitions):
+    # Create n partitions.
+    data = data.repartition(number_of_partitions)
 
-    return reduce(DataFrame.union, dataframes)
+    # Fit the pipeline to training documents.
+    data = pipeline.fit(data).transform(data)
+
+    # Randomly split data into training and test sets, and set seed for reproducibility.
+    (training_data, test_data) = data.randomSplit([0.7, 0.3], seed=100)
+
+    # Train model with Training Data.
+    model = logistic_regression.fit(training_data)
+
+    # Return model and test set.
+    return model, test_data
 
 
 # Load the environment variables from .env file.
@@ -82,16 +97,6 @@ sc = spark.sparkContext
 # Set Spark log level to error (it will show only error messages).
 sc.setLogLevel("ERROR")
 
-# Merge all newspaper articles.
-leaver_articles = merge_articles(LEAVER_NEWSPAPER_FILES).withColumn("label", 0)
-remain_articles = merge_articles(REMAIN_NEWSPAPER_FILES).withColumn("label", 1)
-
-# ...
-brexit_articles = reduce(DataFrame.union, [leaver_articles, remain_articles])
-
-# Create n partitions, where n is the number of newspapers to analyze.
-brexit_articles = brexit_articles.repartition(len(LEAVER_NEWSPAPER_FILES) + len(REMAIN_NEWSPAPER_FILES))
-
 # Regular expression tokenizer.
 regex_tokenizer = RegexTokenizer(inputCol="content", outputCol="tokens", pattern="\\W")
 
@@ -99,24 +104,64 @@ regex_tokenizer = RegexTokenizer(inputCol="content", outputCol="tokens", pattern
 hashing_TF = HashingTF(inputCol="tokens", outputCol="rawFeatures", numFeatures=10000)
 idf = IDF(inputCol="rawFeatures", outputCol="features", minDocFreq=5)
 
+pipeline = Pipeline(stages=[regex_tokenizer, hashing_TF, idf])
+
+# Build the model.
+logistic_regression = LogisticRegression(maxIter=20, regParam=0.3, elasticNetParam=0, family="binomial")
+
+results = {}
+
 print(f"\n{Colors.BOLD}▶ Cluster nodes: {sc._jsc.sc().getExecutorMemoryStatus().size()}")
 
 start = time()
 
-pipeline = Pipeline(stages=[regex_tokenizer, hashing_TF, idf])
+# [1]: Training a model using main Brexit articles (all Brexit articles without last one for each political part).
 
-# Fit the pipeline to training documents.
-pipeline_fit = pipeline.fit(brexit_articles)
-dataset = pipeline_fit.transform(brexit_articles)
+# Merge main Brexit newspaper articles.
+brexit_articles = reduce(DataFrame.union, [
+    merge_articles(LEAVER_NEWSPAPER_FILES[:-1]).withColumn("label", 0),
+    merge_articles(REMAIN_NEWSPAPER_FILES[:-1]).withColumn("label", 1)
+])
 
-# Randomly split data into training and test sets, and set seed for reproducibility.
-(training_data, test_data) = dataset.randomSplit([0.7, 0.3], seed=100)
+# Train models and get accuracies.
+brexit_model, brexit_test_data = train_model(brexit_articles, len(LEAVER_NEWSPAPER_FILES + REMAIN_NEWSPAPER_FILES) - 2)
 
-print(f"Training set articles: {str(training_data.count())}")
-print(f"Test set articles: {str(test_data.count())}")
+# Add accuracies to results.
+results["brexit"] = {
+    "training_set": brexit_model.summary.accuracy,
+    "test_set": brexit_model.evaluate(brexit_test_data).accuracy
+}
+
+# [2]: ...
+
+# Merge additional brexit newspaper articles.
+additional_brexit_articles = reduce(DataFrame.union, [
+    get_data(LEAVER_NEWSPAPER_FILES[-1]).withColumn("label", 0),
+    get_data(REMAIN_NEWSPAPER_FILES[-1]).withColumn("label", 1)
+])
+
+# Add accuracy to results.
+results["brexit"]["additional_test_set"] = brexit_model.evaluate(additional_brexit_articles).accuracy
+
+# [3]: ...
+
+# ...
+all_articles = reduce(DataFrame.union, [
+    merge_articles(NEUTRAL_NEWSPAPER_FILE).withColumn("label", 0),
+    merge_articles(LEAVER_NEWSPAPER_FILES[:-1] + REMAIN_NEWSPAPER_FILES[:-1]).withColumn("label", 1)
+])
+
+# Train models and get accuracies.
+brexit_model, brexit_test_data = train_model(all_articles, len(LEAVER_NEWSPAPER_FILES + REMAIN_NEWSPAPER_FILES) - 1)
+
+# Add accuracies to results.
+results["neutral"] = {
+    "training_set": brexit_model.summary.accuracy,
+    "test_set": brexit_model.evaluate(brexit_test_data).accuracy
+}
 
 end = time()
 
-# save_data("classification_results", results)
+save_data("classification_results", results)
 
 print(f"\n{Colors.BOLD}▶ Execution time:{Colors.ENDC} {round(end - start, 3)}")
