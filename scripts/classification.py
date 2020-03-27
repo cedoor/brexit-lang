@@ -66,20 +66,17 @@ def merge_articles(newspaper_filenames):
 
 
 def train_model(data, number_of_partitions):
-    # Create n partitions.
-    data = data.repartition(number_of_partitions)
-
-    # Fit the pipeline to training documents.
-    data = pipeline.fit(data).transform(data)
+    data = data.repartition(number_of_partitions)  # Create n partitions.
+    data = pipeline.fit(data).transform(data)  # Fit the pipeline to training documents.
 
     # Randomly split data into training and test sets, and set seed for reproducibility.
-    (training_data, test_data) = data.randomSplit([0.7, 0.3], seed=100)
+    (training_set, test_set) = data.randomSplit([0.7, 0.3], seed=100)
 
     # Train model with Training Data.
-    model = logistic_regression.fit(training_data)
+    model = logistic_regression.fit(training_set)
 
     # Return model and test set.
-    return model, test_data
+    return model, test_set
 
 
 # Load the environment variables from .env file.
@@ -97,67 +94,70 @@ sc = spark.sparkContext
 # Set Spark log level to error (it will show only error messages).
 sc.setLogLevel("ERROR")
 
-# Regular expression tokenizer.
+# Set a regular expression tokenizer.
 regex_tokenizer = RegexTokenizer(inputCol="content", outputCol="tokens", pattern="\\W")
 
 # Add HashingTF and IDF to transformation.
 hashing_TF = HashingTF(inputCol="tokens", outputCol="rawFeatures", numFeatures=10000)
 idf = IDF(inputCol="rawFeatures", outputCol="features", minDocFreq=5)
 
+# Define a pipeline with all stages.
 pipeline = Pipeline(stages=[regex_tokenizer, hashing_TF, idf])
 
-# Build the model.
+# Create a logistic regression object.
 logistic_regression = LogisticRegression(maxIter=20, regParam=0.3, elasticNetParam=0, family="binomial")
 
+# Create an object to save all the results.
 results = {}
 
 print(f"\n{Colors.BOLD}▶ Cluster nodes: {sc._jsc.sc().getExecutorMemoryStatus().size()}")
 
 start = time()
 
-# [1]: Training a model using main Brexit articles (all Brexit articles without last one for each political part).
+# [1]: Train a model using main Brexit articles (all Brexit newspapers without last one for each political part)
+# to check when an article is for Brexit or not.
 
 # Merge main Brexit newspaper articles.
-brexit_articles = reduce(DataFrame.union, [
+articles = reduce(DataFrame.union, [
     merge_articles(LEAVER_NEWSPAPER_FILES[:-1]).withColumn("label", 0),
     merge_articles(REMAIN_NEWSPAPER_FILES[:-1]).withColumn("label", 1)
 ])
 
-# Train models and get accuracies.
-brexit_model, brexit_test_data = train_model(brexit_articles, len(LEAVER_NEWSPAPER_FILES + REMAIN_NEWSPAPER_FILES) - 2)
+# Train a model.
+model, test_set = train_model(articles, len(LEAVER_NEWSPAPER_FILES + REMAIN_NEWSPAPER_FILES) - 2)
 
-# Add accuracies to results.
+# Add training and test set accuracies to results.
 results["brexit"] = {
-    "training_set": brexit_model.summary.accuracy,
-    "test_set": brexit_model.evaluate(brexit_test_data).accuracy
+    "training_set": model.summary.accuracy,
+    "test_set": model.evaluate(test_set).accuracy
 }
 
-# [2]: ...
+# [2]: Test created model with last newspapers not used in the previous dataset.
 
 # Merge additional brexit newspaper articles.
-additional_brexit_articles = reduce(DataFrame.union, [
+additional_articles = reduce(DataFrame.union, [
     get_data(LEAVER_NEWSPAPER_FILES[-1]).withColumn("label", 0),
     get_data(REMAIN_NEWSPAPER_FILES[-1]).withColumn("label", 1)
 ])
 
 # Add accuracy to results.
-results["brexit"]["additional_test_set"] = brexit_model.evaluate(additional_brexit_articles).accuracy
+results["brexit"]["additional_test_set"] = model.evaluate(additional_articles).accuracy
 
-# [3]: ...
+# [3]: Train another model using main Brexit and neutral articles to check when an articles talks about Brexit or not.
 
-# ...
-all_articles = reduce(DataFrame.union, [
+# Merge main Brexit and neutral newspaper articles.
+articles = reduce(DataFrame.union, [
     merge_articles(NEUTRAL_NEWSPAPER_FILE).withColumn("label", 0),
     merge_articles(LEAVER_NEWSPAPER_FILES[:-1] + REMAIN_NEWSPAPER_FILES[:-1]).withColumn("label", 1)
 ])
 
-# Train models and get accuracies.
-brexit_model, brexit_test_data = train_model(all_articles, len(LEAVER_NEWSPAPER_FILES + REMAIN_NEWSPAPER_FILES) - 1)
+# Train a model.
+model, test_set = train_model(articles, len(LEAVER_NEWSPAPER_FILES + REMAIN_NEWSPAPER_FILES) - 1)
 
 # Add accuracies to results.
 results["neutral"] = {
-    "training_set": brexit_model.summary.accuracy,
-    "test_set": brexit_model.evaluate(brexit_test_data).accuracy
+    "training_set": model.summary.accuracy,
+    "test_set": model.evaluate(test_set).accuracy
 }
 
 end = time()
