@@ -9,17 +9,6 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import DataFrame, lit, explode, col, count, collect_list
 
 
-# Define some console colors.
-class Colors:
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-
 def load_env_variables(filepath):
     for key, value in get_env_line(filepath):
         environ.setdefault(key, str(value))
@@ -50,8 +39,6 @@ def get_env_line(filepath):
 def save_data(file_name, data):
     with open("./" + file_name + ".json", "w") as fp:
         json.dump(data, fp, indent=4, ensure_ascii=False)
-
-    print(f"\n{Colors.OKGREEN}Results saved in {file_name}.json file!{Colors.ENDC}")
 
 
 def merge_articles(newspaper_filenames):
@@ -123,4 +110,4 @@ end = time()
 
 save_data("analysis_results", results)
 
-print(f"\n{Colors.BOLD}▶ Execution time:{Colors.ENDC} {round(end - start, 3)}")
+print(f"\n▶ Execution completed successfully in \033[1m{round(end - start, 3)}\033[0m seconds!")

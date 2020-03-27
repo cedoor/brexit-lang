@@ -32,4 +32,4 @@ echo -e "\n───────────────▄▄───▐█
 echo -e "\n• Running classification:"
 startClassification
 
-echo -e "\n${TEXT_SUCCESS}Brexit language classification completed, you can find \"classification_results.json\" on \"~/Downloads\" folder!${NC}\n"
+echo -e "\n${TEXT_SUCCESS}Brexit language classification completed, you can find the results in \"~/Downloads/classification_results.json\" file${NC}\n"

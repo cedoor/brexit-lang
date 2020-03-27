@@ -140,7 +140,7 @@ echo -e "\n───────────────▄▄───▐█
 for i in "${!EC2_HOSTS[@]}"; do
     EC2_HOST=${EC2_HOSTS[$i]}
 
-    echo -e "\nHost ${TEXT_WARNING}$EC2_HOST${NC} setup:"
+    echo -e "\n# Host ${TEXT_WARNING}$EC2_HOST${NC} setup:"
 
     progress installSystemPackages "• Installing system packages"
 
@@ -158,6 +158,8 @@ for i in "${!EC2_HOSTS[@]}"; do
         progress configureSlave "• Slave node configuration"
     fi
 done
+
+echo -e "\n# Preparing the environment:"
 
 progress startHadoopCluster "• Running Hadoop cluster"
 

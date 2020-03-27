@@ -11,17 +11,6 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import DataFrame, lit
 
 
-# Define some console colors.
-class Colors:
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-
 def load_env_variables(filepath):
     for key, value in get_env_line(filepath):
         environ.setdefault(key, str(value))
@@ -52,8 +41,6 @@ def get_env_line(filepath):
 def save_data(file_name, data):
     with open("./" + file_name + ".json", "w") as fp:
         json.dump(data, fp, indent=4, ensure_ascii=False)
-
-    print(f"\n{Colors.OKGREEN}Results saved in {file_name}.json file!{Colors.ENDC}")
 
 
 def get_data(newspaper_filename):
@@ -125,7 +112,7 @@ articles = reduce(DataFrame.union, [
 model, test_set = train_model(articles, len(LEAVER_NEWSPAPER_FILES + REMAIN_NEWSPAPER_FILES) - 2)
 
 # Add training and test set accuracies to results.
-results["brexit"] = {
+results["leave/remain"] = {
     "training_set": model.summary.accuracy,
     "test_set": model.evaluate(test_set).accuracy
 }
@@ -143,7 +130,7 @@ additional_articles = additional_articles.repartition(2)
 additional_articles = pipeline.fit(additional_articles).transform(additional_articles)
 
 # Add accuracy to results.
-results["brexit"]["additional_test_set"] = model.evaluate(additional_articles).accuracy
+results["leave/remain"]["additional_test_set"] = model.evaluate(additional_articles).accuracy
 
 # [3]: Train another model using main Brexit and neutral articles to check when an articles talks about Brexit or not.
 
@@ -157,7 +144,7 @@ articles = reduce(DataFrame.union, [
 model, test_set = train_model(articles, len(LEAVER_NEWSPAPER_FILES + REMAIN_NEWSPAPER_FILES) - 1)
 
 # Add accuracies to results.
-results["neutral"] = {
+results["brexit/neutral"] = {
     "training_set": model.summary.accuracy,
     "test_set": model.evaluate(test_set).accuracy
 }
@@ -166,4 +153,4 @@ end = time()
 
 save_data("classification_results", results)
 
-print(f"\n{Colors.BOLD}▶ Execution time:{Colors.ENDC} {round(end - start, 3)}")
+print(f"\n▶ Execution completed successfully in \033[1m{round(end - start, 3)}\033[0m seconds!")
