@@ -118,16 +118,15 @@ installBrexitLang() {
         unzip -q master.zip
         rm -fr master.zip brexit-lang
         mv brexit-lang-master brexit-lang
-        mkdir brexit-lang/data
 EOF
 }
 
 uploadData() {
-    scp -q -r -i "$IDENTITY_FILE_PATH" "$DATA_PATH/*.json" "ubuntu@${EC2_HOSTS[0]}:/home/ubuntu/brexit-lang/data"
+    scp -q -r -i "$IDENTITY_FILE_PATH" "$DATA_PATH" "ubuntu@${EC2_HOSTS[0]}:/home/ubuntu/brexit-lang"
 
     scp -q -i "$IDENTITY_FILE_PATH" "$ENV_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}:/home/ubuntu"
     ssh -T -o StrictHostKeyChecking=no -i "$IDENTITY_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}" << EOF
-        hdfs dfs -put ~/brexit-lang/data /
+        hdfs dfs -put -f ~/brexit-lang/data /
 EOF
 }
 

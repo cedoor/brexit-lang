@@ -77,7 +77,7 @@ DATA_FILES = LEAVER_NEWSPAPER_FILES + REMAIN_NEWSPAPER_FILES + NEUTRAL_NEWSPAPER
 KEY_TOKENS = getenv("KEY_TOKENS").split(" ")
 
 # Define Spark context.
-spark = SparkSession.builder.appName("BrexitLang").getOrCreate()
+spark = SparkSession.builder.appName("Analysis").getOrCreate()
 sc = spark.sparkContext
 
 # Set Spark log level to error (it will show only error messages).
@@ -88,8 +88,6 @@ all_articles = merge_articles(DATA_FILES)
 
 # Create n partitions, where n is the number of newspapers to analyze.
 all_articles = all_articles.repartition(len(DATA_FILES))
-
-print(f"\n{Colors.BOLD}▶ Cluster nodes: {sc._jsc.sc().getExecutorMemoryStatus().size()}")
 
 # Define the Spark tokenizer.
 regex_tokenizer = RegexTokenizer(inputCol="content", outputCol="tokens", pattern="\\W")

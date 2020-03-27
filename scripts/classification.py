@@ -88,7 +88,7 @@ REMAIN_NEWSPAPER_FILES = getenv("REMAIN_NEWSPAPER_FILES").split(" ")
 NEUTRAL_NEWSPAPER_FILE = getenv("NEUTRAL_NEWSPAPER_FILE").split(" ")
 
 # Define Spark context.
-spark = SparkSession.builder.appName("BrexitLang").getOrCreate()
+spark = SparkSession.builder.appName("Classification").getOrCreate()
 sc = spark.sparkContext
 
 # Set Spark log level to error (it will show only error messages).
@@ -110,8 +110,6 @@ logistic_regression = LogisticRegression(maxIter=20, regParam=0.3, elasticNetPar
 # Create an object to save all the results.
 results = {}
 
-print(f"\n{Colors.BOLD}▶ Cluster nodes: {sc._jsc.sc().getExecutorMemoryStatus().size()}")
-
 start = time()
 
 # [1]: Train a model using main Brexit articles (all Brexit newspapers without last one for each political part)
@@ -119,8 +117,8 @@ start = time()
 
 # Merge main Brexit newspaper articles.
 articles = reduce(DataFrame.union, [
-    merge_articles(LEAVER_NEWSPAPER_FILES[:-1]).withColumn("label", 0),
-    merge_articles(REMAIN_NEWSPAPER_FILES[:-1]).withColumn("label", 1)
+    merge_articles(LEAVER_NEWSPAPER_FILES[:-1]).withColumn("label", lit(0)),
+    merge_articles(REMAIN_NEWSPAPER_FILES[:-1]).withColumn("label", lit(1))
 ])
 
 # Train a model.
@@ -136,9 +134,13 @@ results["brexit"] = {
 
 # Merge additional brexit newspaper articles.
 additional_articles = reduce(DataFrame.union, [
-    get_data(LEAVER_NEWSPAPER_FILES[-1]).withColumn("label", 0),
-    get_data(REMAIN_NEWSPAPER_FILES[-1]).withColumn("label", 1)
+    get_data(LEAVER_NEWSPAPER_FILES[-1]).withColumn("label", lit(0)),
+    get_data(REMAIN_NEWSPAPER_FILES[-1]).withColumn("label", lit(1))
 ])
+
+# Create n partitions and fit the pipeline to training documents.
+additional_articles = additional_articles.repartition(2)
+additional_articles = pipeline.fit(additional_articles).transform(additional_articles)
 
 # Add accuracy to results.
 results["brexit"]["additional_test_set"] = model.evaluate(additional_articles).accuracy
@@ -147,8 +149,8 @@ results["brexit"]["additional_test_set"] = model.evaluate(additional_articles).a
 
 # Merge main Brexit and neutral newspaper articles.
 articles = reduce(DataFrame.union, [
-    merge_articles(NEUTRAL_NEWSPAPER_FILE).withColumn("label", 0),
-    merge_articles(LEAVER_NEWSPAPER_FILES[:-1] + REMAIN_NEWSPAPER_FILES[:-1]).withColumn("label", 1)
+    merge_articles(NEUTRAL_NEWSPAPER_FILE).withColumn("label", lit(0)),
+    merge_articles(LEAVER_NEWSPAPER_FILES[:-1] + REMAIN_NEWSPAPER_FILES[:-1]).withColumn("label", lit(1))
 ])
 
 # Train a model.

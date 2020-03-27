@@ -32,4 +32,4 @@ echo -e "\n───────────────▄▄───▐█
 echo -e "\n• Running analysis:"
 startAnalysis
 
-echo -e "\n${TEXT_SUCCESS}Brexit language analysis completed, results saved on \"analysis_results.json\" file!${NC}\n"
+echo -e "\n${TEXT_SUCCESS}Brexit language analysis completed, you can find \"analysis_results.json\" on \"~/Downloads\" folder!${NC}\n"
