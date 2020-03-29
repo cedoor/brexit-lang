@@ -22,7 +22,6 @@ installSystemPackages() {
 
     ssh -T -o StrictHostKeyChecking=no -i "$IDENTITY_FILE_PATH" "ubuntu@$EC2_HOST" << EOF
         sudo apt-get -qq update &> /dev/null
-        sudo apt-get -qq -y upgrade &> /dev/null
         sudo apt-get -qq -y install openjdk-8-jdk-headless python3-pip unzip &> /dev/null
         pip3 install -q --user numpy
 EOF
@@ -92,7 +91,7 @@ startHadoopCluster () {
     ssh -T -o StrictHostKeyChecking=no -i "$IDENTITY_FILE_PATH" "ubuntu@${EC2_HOSTS[0]}" << EOF
         hdfs namenode -format 2> /dev/null <<< Y > /dev/null
         cd \$HADOOP_HOME/sbin/
-        ./start-dfs.sh &> /dev/null && ./start-yarn.sh &> /dev/null && ./mr-jobhistory-daemon.sh start historyserver &> /dev/null
+        ./stop-dfs.sh &> /dev/null && ./stop-yarn.sh &> /dev/null && ./mr-jobhistory-daemon.sh stop historyserver &> /dev/null && ./start-dfs.sh &> /dev/null && ./start-yarn.sh &> /dev/null && ./mr-jobhistory-daemon.sh start historyserver &> /dev/null
 EOF
 }
 
