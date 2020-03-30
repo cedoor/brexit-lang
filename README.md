@@ -6,7 +6,7 @@ Spark scripts counts the number of occurrences of a token in the articles of the
 
 All data we used were obtained with Python scripts on [brexit-news](https://github.com/epilurzu/brexit-news) repository, in which for each newspaper we obtained a JSON file with a list of articles.
 
-___
+________________________________
 
 ## :paperclip: Table of Contents
 - :hammer: [Install](#hammer-install)
@@ -39,9 +39,9 @@ cd brexit-lang
 
 ### Configuration files
 
-Inside the main directory:
+Inside the main directory (`brexit-lang`):
 
-1. Create an `.env` file with the following environment variables:
+1. Create a `.env` file with the following environment variables:
 
 ```
 EC2_HOSTS="ec2-0-0-0-0.compute-1.amazonaws.com ec2-0-0-0-1.compute-1.amazonaws.com"
@@ -52,9 +52,11 @@ REMAIN_NEWSPAPER_FILES="indipendent.json the_guardian.json daily_mirror.json"
 NEUTRAL_NEWSPAPER_FILE="the_new_york_times.json"
 KEY_TOKENS="but although seem appear suggest suppose think sometimes often usually likelihood assumption possibility likely unlikely conceivable conceivably probable probably roughly sort they could would we"
 ```
+
 where:
+
 * `EC2_HOSTS` is a list of AWS EC2 host URLs (cluster node URLs) obtained with `terraform apply` command;
-* `IDENTITY_FILE_PATH` is the AWS pem file path. You can create it in key pairs section of AWS EC2 page. It is important to call this file `amazon.pem`;
+* `IDENTITY_FILE_PATH` is the AWS pem file path. You can create it in key pairs [section of AWS EC2 page](https://console.aws.amazon.com/ec2/v2/home#KeyPairs). It is important to call this file `amazon.pem`;
 * `DATA_PATH` is the directory path of JSON data with newspaper articles;
 * `LEAVER_NEWSPAPER_FILES` is a list of JSON data files of leaver newspapers. Data has to be in the following format:
 ```json
@@ -63,16 +65,25 @@ where:
 {"title": "article title", "url": "article url", "timestamp": 1522188456900, "content": "article body"}
 ```
 * `REMAIN_NEWSPAPER_FILES` is a list of JSON data files of remain newspapers.
-* `NEUTRAL_NEWSPAPER_FILE` is a JSON data file of a neutral-brexit newspaper.
+* `NEUTRAL_NEWSPAPER_FILE` is a JSON data file of a neutral newspaper (it does not mention Brexit).
 * `KEY_TOKENS` is a list of words (tokens) to analyze.
 
 2. Run `aws configure` to save your credentials on local `~/.aws/credentials` file.
 
 3. Set your AWS parameters on `terraform.tfvars` file:
-* `vpc_security_group_id`: you need to update this variable with your AWS security group ID conteined in security groups section, on the EC2 service page;
-* `ec2_ami`: your Amazon machine image;
-* `ec2_instance_count`: the number of cluster nodes;
-* `ec2_instance_type`: the type of node instances.
+* `region` (optional): AWS region (default: `us-east-1`);
+* `vpc_security_group_id` (required): AWS security group ID conteined in [security group section](https://console.aws.amazon.com/ec2/v2/home#SecurityGroups:sort=group-id), on the EC2 service page;
+* `ec2_ami` (optional): Amazon machine image (default: `ami-07ebfd5b3428b6f4d`, Ubuntu Server 18.04 LTS);
+* `ec2_instance_count` (optional): number of cluster nodes (default: `2`);
+* `ec2_instance_type` (optional): the type of node instances (default: `t2.small`).
+
+Security group must contain the right `inbound rules` to enable user access with ssh. For example :
+
+|    Type     |    Protocol   |  Port range  |   Source   |
+|-------------|:-------------:|:------------:|:----------:|
+| All traffic |      All      |     All      |  0.0.0.0/0 |
+
+\* Attention to security, this is just an example!
 
 ### Create instances
 
@@ -83,17 +94,23 @@ terraform init
 terraform apply
 ```
 
-When `terraform apply` command execution ends and prints the cluster instance information, you must update the `EC2_HOSTS` variable in your local `.env` file with the DNS of the cluster istances created. The first one must be the master.
+When `terraform apply` command execution ends and prints the cluster instance information, you must update the `EC2_HOSTS` variable in your local `.env` file with the DNS of the cluster istances created. The first one must be the master. You can also find created instances on the [AWS page](https://console.aws.amazon.com/ec2/v2/home#Instances:sort=instanceId).
 
 ### Setup cluster
 
-Now you can setup all the nodes with the following command:
+After the creation of the instances, you can setup all the nodes with the following command:
 
 ```bash
 bash scripts/setup_instances.sh .env
 ```
 
+This command installs Java, Pyhton dependencies, Hadoop and Spark. Then, set up the cluster and upload the data to HDFS. At this point you can run the script for analysis or classification.
+
 ### Analysis
+
+Analysis script get the `KEY_TOKENS` values and all the newspapers, and counts the number of occurrences of the tokens in the articles of each newspaper, normalizing the value based on the total number of newspaper tokens. 
+
+You can run the script with the following command:
 
 ```bash
 bash scripts/start_analysis.sh .env
@@ -102,6 +119,10 @@ bash scripts/start_analysis.sh .env
 Analysis results will be saved in local `~/Downloads` folder as JSON file called `analysis_results.json`.
 
 ### Classification
+
+In the classification script two models are trained with logistic regression, one to distinguish whether an article is for or against Brexit, the other to distinguish whether an article talks about Brexit or not. The first model uses all Brexit newspapers to train except the last one, which it uses to create an additional separate test set. The second model uses all Brexit newspapers except the last one and the neutral newspaper. The script saves the accuracies of the two models in the resulting file.
+
+You can run the script with the following command:
 
 ```bash
 bash scripts/start_classification.sh .env
