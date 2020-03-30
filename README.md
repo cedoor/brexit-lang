@@ -134,11 +134,13 @@ Classification results will be saved in local `~/Downloads` folder as JSON file 
 
 ### Destroy instances
 
-To destroy instances from AWS run the following command:
+Finally, to destroy instances from AWS run the following command:
 
 ```bash
 terraform destroy
 ```
+
+At this point if you want you can do another analysis with a new cluster.
 
 ## :chart_with_upwards_trend: Development
 
