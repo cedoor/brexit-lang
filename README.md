@@ -57,7 +57,7 @@ where:
 
 * `EC2_HOSTS` is a list of AWS EC2 host URLs (cluster node URLs) obtained with `terraform apply` command;
 * `IDENTITY_FILE_PATH` is the AWS pem file path. You can create it in key pairs [section of AWS EC2 page](https://console.aws.amazon.com/ec2/v2/home#KeyPairs). It is important to call this file `amazon.pem`;
-* `DATA_PATH` is the directory path of JSON data with newspaper articles;
+* `DATA_PATH` is the directory path of JSON data with newspaper articles (it should only contain the files listed below);
 * `LEAVER_NEWSPAPER_FILES` is a list of JSON data files of leaver newspapers. 
 * `REMAIN_NEWSPAPER_FILES` is a list of JSON data files of remain newspapers.
 * `NEUTRAL_NEWSPAPER_FILE` is a JSON data file of a neutral newspaper (it does not mention Brexit).
