@@ -28,7 +28,7 @@ You must have the following packages installed on the system:
 - [terraform](https://www.terraform.io/docs/cli-index.html)
 - [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html)
 
-Clone the repo and install the dependencies from npm.
+And clone the repo:
 
 ```bash
 git clone https://github.com/cedoor/brexit-lang.git
@@ -131,6 +131,8 @@ bash scripts/start_classification.sh .env
 Classification results will be saved in local `~/Downloads` folder as JSON file called `classification_results.json`.
 
 ### Destroy instances
+
+To destroy instances from AWS run the following command:
 
 ```bash
 terraform destroy
