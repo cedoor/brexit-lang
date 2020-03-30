@@ -73,11 +73,11 @@ All the data files has to be in the following format:
 2. Run `aws configure` to save your credentials on local `~/.aws/credentials` file.
 
 3. Set your AWS parameters on `terraform.tfvars` file:
-* `region` (optional): AWS region (default: `us-east-1`);
-* `vpc_security_group_id` (required): AWS security group ID conteined in [security group section](https://console.aws.amazon.com/ec2/v2/home#SecurityGroups:sort=group-id), on the EC2 service page;
-* `ec2_ami` (optional): Amazon machine image (default: `ami-07ebfd5b3428b6f4d`, Ubuntu Server 18.04 LTS);
-* `ec2_instance_count` (optional): number of cluster nodes (default: `2`);
-* `ec2_instance_type` (optional): the type of node instances (default: `t2.small`).
+* `region`: AWS region (default: `us-east-1`);
+* `vpc_security_group_id` (to be changed): AWS security group ID conteined in [security group section](https://console.aws.amazon.com/ec2/v2/home#SecurityGroups:sort=group-id), on the EC2 service page;
+* `ec2_ami`: Amazon machine image (default: `ami-07ebfd5b3428b6f4d`, Ubuntu Server 18.04 LTS);
+* `ec2_instance_count`: number of cluster nodes (default: `2`);
+* `ec2_instance_type`: the type of node instances (default: `t2.small`).
 
 Security group must contain the right `inbound rules` to enable user access with ssh. For example :
 
