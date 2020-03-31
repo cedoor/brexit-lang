@@ -39,7 +39,7 @@ cd brexit-lang
 
 Inside the main directory (`brexit-lang`):
 
-1. Create a `.env` file with the following environment variables:
+1. Create a `.env` file and update the following environment variables as described below:
 
 ```
 EC2_HOSTS="ec2-0-0-0-0.compute-1.amazonaws.com ec2-0-0-0-1.compute-1.amazonaws.com"
