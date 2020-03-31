@@ -6,7 +6,7 @@
 ENV_FILE_PATH="$1"
 
 # Set current script position path.
-SCRIPT_PATH=$(dirname "$(readlink -f "$0")")
+SCRIPT_PATH=$(dirname "$0")
 
 # External scripts.
 source "$SCRIPT_PATH/utils.sh"
@@ -129,45 +129,45 @@ uploadData() {
 EOF
 }
 
-echo -e "\n───────────────▄▄───▐█
-───▄▄▄───▄██▄──█▀───█─▄
-─▄██▀█▌─██▄▄──▐█▀▄─▐█▀
-▐█▀▀▌───▄▀▌─▌─█─▌──▌─▌
-▌▀▄─▐──▀▄─▐▄─▐▄▐▄─▐▄─▐▄
-\n${TEXT_PRIMARY}♦ EC2 cluster setup${NC}"
-
-for i in "${!EC2_HOSTS[@]}"; do
-    EC2_HOST=${EC2_HOSTS[$i]}
-
-    echo -e "\n# Host ${TEXT_WARNING}$EC2_HOST${NC} setup:"
-
-    progress installSystemPackages "• Installing system packages"
-
-    progress installHadoop "• Installing Hadoop"
-
-    progress installSpark "• Installing Spark"
-
-    progress configureHadoop "• Hadoop configuration"
-
-    if [ "$i" = "0" ]; then
-        progress configureMaster "• Master node configuration"
-    fi
-
-    if [ "$i" != "0" ]; then
-        progress configureSlave "• Slave node configuration"
-    fi
-done
-
-echo -e "\n# Preparing the environment:"
-
-progress startHadoopCluster "• Running Hadoop cluster"
-
-progress startSparkOnMaster "• Running Spark on master"
-
-progress startSparkOnSlaves "• Running Spark on slaves"
-
-progress installBrexitLang "• Installing BrexitLang from repository"
-
-progress uploadData "• Uploding newspaper articles on HDFS"
-
+#echo -e "\n───────────────▄▄───▐█
+#───▄▄▄───▄██▄──█▀───█─▄
+#─▄██▀█▌─██▄▄──▐█▀▄─▐█▀
+#▐█▀▀▌───▄▀▌─▌─█─▌──▌─▌
+#▌▀▄─▐──▀▄─▐▄─▐▄▐▄─▐▄─▐▄
+#\n${TEXT_PRIMARY}♦ EC2 cluster setup${NC}"
+#
+#for i in "${!EC2_HOSTS[@]}"; do
+#    EC2_HOST=${EC2_HOSTS[$i]}
+#
+#    echo -e "\n# Host ${TEXT_WARNING}$EC2_HOST${NC} setup:"
+#
+#    progress installSystemPackages "• Installing system packages"
+#
+#    progress installHadoop "• Installing Hadoop"
+#
+#    progress installSpark "• Installing Spark"
+#
+#    progress configureHadoop "• Hadoop configuration"
+#
+#    if [ "$i" = "0" ]; then
+#        progress configureMaster "• Master node configuration"
+#    fi
+#
+#    if [ "$i" != "0" ]; then
+#        progress configureSlave "• Slave node configuration"
+#    fi
+#done
+#
+#echo -e "\n# Preparing the environment:"
+#
+#progress startHadoopCluster "• Running Hadoop cluster"
+#
+#progress startSparkOnMaster "• Running Spark on master"
+#
+#progress startSparkOnSlaves "• Running Spark on slaves"
+#
+#progress installBrexitLang "• Installing BrexitLang from repository"
+#
+#progress uploadData "• Uploding newspaper articles on HDFS"
+#
 echo -e "\n${TEXT_SUCCESS}EC2 cluster setup completed!${NC}\n"

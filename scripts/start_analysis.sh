@@ -6,7 +6,7 @@
 ENV_FILE_PATH="$1"
 
 # Set current script position path.
-SCRIPT_PATH=$(dirname "$(readlink -f "$0")")
+SCRIPT_PATH=$(dirname "$0")
 
 # External scripts.
 source "$SCRIPT_PATH/utils.sh"
