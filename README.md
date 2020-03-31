@@ -25,7 +25,7 @@ You must have the following packages installed on the system:
 - git
 - python 3
 - pip 3
-- [terraform](https://www.terraform.io/docs/cli-index.html)
+- [terraform](https://learn.hashicorp.com/terraform/getting-started/install)
 - [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html)
 
 And clone the repo:
