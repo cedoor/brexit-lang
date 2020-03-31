@@ -105,7 +105,7 @@ After the creation of the instances, check again that the paths on the `.env` fi
 bash scripts/setup_instances.sh .env
 ```
 
-This command installs Java, Pyhton dependencies, Hadoop and Spark. Then, set up the cluster and upload the data to HDFS. At this point you can run the script for analysis or classification.
+This command installs Java, Python dependencies, Hadoop and Spark. Then, set up the cluster and upload the data to HDFS. At this point you can run the script for analysis or classification.
 
 ### Analysis
 
