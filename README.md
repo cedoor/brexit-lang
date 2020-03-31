@@ -68,9 +68,7 @@ All the data files has to be in the following format:
 {"title": "article title", "url": "article url", "timestamp": 1522188456900, "content": "article body"}
 ```
 
-2. Run `aws configure` to save your credentials on local `~/.aws/credentials` file. The command interactively asks some parameters, it's important to set the following: AWS Access Key ID, AWS Secret Access Key.
-
-If you have an aws educated student account, you should find your credentials on the vocareum page by clicking on `Account Detail`.
+2. Run `aws configure` to save your credentials on local `~/.aws/credentials` file. The command interactively asks some parameters, it's important to set the following: AWS Access Key ID, AWS Secret Access Key. If you have an aws educated student account, you should find your credentials on the vocareum page by clicking on `Account Detail`.
 
 3. Set your AWS parameters on `terraform.tfvars` file within the `brexit-lang` folder (the important thing is to set `vpc_security_group_id`):
 * `vpc_security_group_id` (**must be changed**): You need to set your AWS security group ID conteined in [security group section](https://console.aws.amazon.com/ec2/v2/home#SecurityGroups:sort=group-id), on the EC2 service page;
