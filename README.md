@@ -54,7 +54,7 @@ KEY_TOKENS="but although seem appear suggest suppose think sometimes often usual
 where:
 
 * `EC2_HOSTS` is a list of AWS EC2 host URLs (cluster node URLs) obtained with `terraform apply` command (we will see it later);
-* `IDENTITY_FILE_PATH` is the AWS pem file path. You can create it in key pairs [section of AWS EC2 page](https://console.aws.amazon.com/ec2/v2/home#KeyPairs). It is important to call this file `amazon.pem`;
+* `IDENTITY_FILE_PATH` is the AWS pem file path. You can create it in key pairs [section of AWS EC2 page](https://console.aws.amazon.com/ec2/v2/home#KeyPairs). It is important to call this file `amazon.pem` and run `chmod 600 amazon.pem` to give the right permissions;
 * `DATA_PATH` is the directory path of JSON data with newspaper articles (it should only contain the files listed below);
 * `LEAVER_NEWSPAPER_FILES` is a list of JSON data files of leaver newspapers. 
 * `REMAIN_NEWSPAPER_FILES` is a list of JSON data files of remain newspapers.
@@ -68,22 +68,25 @@ All the data files has to be in the following format:
 {"title": "article title", "url": "article url", "timestamp": 1522188456900, "content": "article body"}
 ```
 
-2. Run `aws configure` to save your credentials on local `~/.aws/credentials` file.
+2. Run `aws configure` to save your credentials on local `~/.aws/credentials` file. The command interactively asks some parameters, it's important to set the following: AWS Access Key ID, AWS Secret Access Key.
 
-3. Set your AWS parameters on `terraform.tfvars` file:
+If you have an aws educated student account, you should find your credentials on the vocareum page by clicking on `Account Detail`.
+
+3. Set your AWS parameters on `terraform.tfvars` file within the `brexit-lang` folder (the important thing is to set `vpc_security_group_id`):
+* `vpc_security_group_id` (**must be changed**): You need to set your AWS security group ID conteined in [security group section](https://console.aws.amazon.com/ec2/v2/home#SecurityGroups:sort=group-id), on the EC2 service page;
 * `region`: AWS region (default: `us-east-1`);
-* `vpc_security_group_id` (to be changed): AWS security group ID conteined in [security group section](https://console.aws.amazon.com/ec2/v2/home#SecurityGroups:sort=group-id), on the EC2 service page;
 * `ec2_ami`: Amazon machine image (default: `ami-07ebfd5b3428b6f4d`, Ubuntu Server 18.04 LTS);
 * `ec2_instance_count`: number of cluster nodes (default: `2`);
 * `ec2_instance_type`: the type of node instances (default: `t2.small`).
 
+
 Security group must contain the right `inbound rules` to enable user access with ssh. For example :
 
-|    Type     |    Protocol   |  Port range  |   Source   |
-|-------------|:-------------:|:------------:|:----------:|
-| All traffic |      All      |     All      |  0.0.0.0/0 |
+|    Type     |    Protocol   |  Port range  |   Source     |
+|-------------|:-------------:|:------------:|:------------:|
+| All traffic |      All      |     All      |  0.0.0.0/0 * |
 
-\* Attention to security, this is just an example!
+* **Attention to security, this is just an example!**
 
 ### Create instances
 
@@ -98,7 +101,7 @@ When `terraform apply` command execution ends and prints the cluster instance in
 
 ### Setup cluster
 
-After the creation of the instances, you can setup all the nodes with the following command:
+After the creation of the instances, check again that the paths on the `.env` file are correct and setup all the nodes with the following command:
 
 ```bash
 bash scripts/setup_instances.sh .env
