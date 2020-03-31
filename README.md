@@ -86,7 +86,7 @@ Security group must contain the right `inbound rules` to enable user access with
 |-------------|:-------------:|:------------:|:------------:|
 | All traffic |      All      |     All      |  0.0.0.0/0 * |
 
-* **Attention to security, this is just an example!**
+\* **Attention to security, this is just an example!**
 
 ### Create instances
 
