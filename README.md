@@ -144,6 +144,15 @@ terraform destroy
 
 At this point if you want you can do another analysis with a new cluster.
 
+### Stop and start instances
+
+Unfortunately there is still no terraform command to stop or start instances. However, it is possible to use `aws-cli` with the following commands:
+
+```bash
+aws ec2 stop-instances --region us-east-1 --instance-ids <ids>
+aws ec2 start-instances --region us-east-1 --instance-ids <ids>
+```
+
 ## :chart_with_upwards_trend: Development
 
 ### :scroll: Rules
