@@ -122,6 +122,10 @@ bash scripts/start_analysis.sh .env
 
 Analysis results will be saved in local `~/Downloads` folder as JSON file called `analysis_results.json`.
 
+Up to April 2020, the result shows that there are no significant differences in the number of the token found in each newspaper. This results are not deterministic in order to understand if an article is for or against Brexit.
+
+The execution times of the algorithm are indicated at the end of the execution.
+
 ### Classification
 
 In the classification script two models are trained with logistic regression, one to distinguish whether an article is for or against Brexit, the other to distinguish whether an article talks about Brexit or not. The first model uses all Brexit newspapers to train except the last one, which it uses to create an additional separate test set. The second model uses all Brexit newspapers except the last one and the neutral newspaper. The script saves the accuracies of the two models in the resulting file.
@@ -133,6 +137,10 @@ bash scripts/start_classification.sh .env
 ```
 
 Classification results will be saved in local `~/Downloads` folder as JSON file called `classification_results.json`.
+
+Up to April 2020, estimated accuracy shows that with these data it is not possible to effectively catalog articles taken from newspapers other than the ones used by the test set.
+
+The execution times of the algorithm are indicated at the end of the execution.
 
 ### Destroy instances
 
