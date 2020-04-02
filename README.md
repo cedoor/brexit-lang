@@ -39,7 +39,38 @@ cd brexit-lang
 
 Inside the main directory (`brexit-lang`):
 
-1. Create a `.env` file and update the following environment variables as described below:
+1. Run `aws configure` to save your credentials on local `~/.aws/credentials` file. The command interactively asks some parameters, it's important to set the following: AWS Access Key ID, AWS Secret Access Key. If you have an aws educated student account, you should find your credentials on the vocareum page by clicking on `Account Detail`.
+
+2. Set your AWS parameters on `terraform.tfvars` file within the `brexit-lang` folder (the important thing is to set `vpc_security_group_id`):
+* `vpc_security_group_id` (**must be changed**): You need to set your AWS security group ID conteined in [security group section](https://console.aws.amazon.com/ec2/v2/home#SecurityGroups:sort=group-id), on the EC2 service page;
+* `ec2_instance_count`: number of cluster nodes (default: `2`);
+* `ec2_instance_type`: the type of node instances (default: `t2.small`).
+
+
+Security group must contain the right `inbound rules` to enable user access with ssh. For example :
+
+|    Type     |    Protocol   |  Port range  |   Source     |
+|-------------|:-------------:|:------------:|:------------:|
+| All traffic |      All      |     All      |  0.0.0.0/0 * |
+
+\* **Attention to security, this is just an example!**
+
+For run the code as it should, other parameters **must not** be changed. For instance, **do not change** parameters like:
+* `region`: AWS region (default: `us-east-1`);
+* `ec2_ami`: Amazon machine image (default: `ami-07ebfd5b3428b6f4d`, Ubuntu Server 18.04 LTS);
+
+### Create instances
+
+To create the EC2 instances run the following commands:
+
+```bash
+terraform init
+terraform apply
+```
+
+When `terraform apply` command execution ends and prints the cluster instance information, you will se the DNS of the cluster istances created. This information will serve immediately.
+
+It is now necessary to create a file called `.env` and update the following environment variables as described below:
 
 ```
 EC2_HOSTS="ec2-0-0-0-0.compute-1.amazonaws.com ec2-0-0-0-1.compute-1.amazonaws.com"
@@ -53,7 +84,8 @@ KEY_TOKENS="but although seem appear suggest suppose think sometimes often usual
 
 where:
 
-* `EC2_HOSTS` is a list of AWS EC2 host URLs (cluster node URLs) obtained with `terraform apply` command (we will see it later);
+* `EC2_HOSTS` is a list of AWS EC2 hosts URLs (cluster node URLs) obtained with `terraform apply` command. The first one must be the master. You can also find created instances on the [AWS page](https://console.aws.amazon.com/ec2/v2/home#Instances:sort=instanceId);
+
 * `IDENTITY_FILE_PATH` is the AWS pem file path. You can create it in key pairs [section of AWS EC2 page](https://console.aws.amazon.com/ec2/v2/home#KeyPairs). It is important to call this file `amazon.pem` and run `chmod 600 amazon.pem` to give the right permissions;
 * `DATA_PATH` is the directory path of JSON data with newspaper articles (it should only contain the files listed below);
 * `LEAVER_NEWSPAPER_FILES` is a list of JSON data files of leaver newspapers. 
@@ -67,35 +99,6 @@ All the data files has to be in the following format:
 {"title": "article title", "url": "article url", "timestamp": 1540228613000, "content": "article body"}
 {"title": "article title", "url": "article url", "timestamp": 1522188456900, "content": "article body"}
 ```
-
-2. Run `aws configure` to save your credentials on local `~/.aws/credentials` file. The command interactively asks some parameters, it's important to set the following: AWS Access Key ID, AWS Secret Access Key. If you have an aws educated student account, you should find your credentials on the vocareum page by clicking on `Account Detail`.
-
-3. Set your AWS parameters on `terraform.tfvars` file within the `brexit-lang` folder (the important thing is to set `vpc_security_group_id`):
-* `vpc_security_group_id` (**must be changed**): You need to set your AWS security group ID conteined in [security group section](https://console.aws.amazon.com/ec2/v2/home#SecurityGroups:sort=group-id), on the EC2 service page;
-* `region`: AWS region (default: `us-east-1`);
-* `ec2_ami`: Amazon machine image (default: `ami-07ebfd5b3428b6f4d`, Ubuntu Server 18.04 LTS);
-* `ec2_instance_count`: number of cluster nodes (default: `2`);
-* `ec2_instance_type`: the type of node instances (default: `t2.small`).
-
-
-Security group must contain the right `inbound rules` to enable user access with ssh. For example :
-
-|    Type     |    Protocol   |  Port range  |   Source     |
-|-------------|:-------------:|:------------:|:------------:|
-| All traffic |      All      |     All      |  0.0.0.0/0 * |
-
-\* **Attention to security, this is just an example!**
-
-### Create instances
-
-To create the EC2 instances run the following commands:
-
-```bash
-terraform init
-terraform apply
-```
-
-When `terraform apply` command execution ends and prints the cluster instance information, you must update the `EC2_HOSTS` variable in your local `.env` file with the DNS of the cluster istances created. The first one must be the master. You can also find created instances on the [AWS page](https://console.aws.amazon.com/ec2/v2/home#Instances:sort=instanceId).
 
 ### Setup cluster
 
